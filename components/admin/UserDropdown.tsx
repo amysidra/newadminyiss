@@ -1,0 +1,101 @@
+"use client";
+
+import React, { useState, useEffect, useRef } from "react";
+import { Settings, LogOut } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+
+export function UserDropdown() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [imageError, setImageError] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const supabase = createClient();
+  const router = useRouter();
+
+  useEffect(() => {
+    async function getUser() {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+    }
+    getUser();
+
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [supabase.auth]);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push("/");
+  };
+
+  const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Admin";
+  const displayEmail = user?.email || "admin@yiss.id";
+  const avatarUrl = user?.user_metadata?.avatar_url || user?.user_metadata?.picture;
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-3 p-1.5 rounded-xl hover:bg-slate-100 transition-all duration-200 group"
+      >
+        <div className="bg-slate-200 w-9 h-9 rounded-full flex justify-center items-center overflow-hidden flex-shrink-0 border border-slate-200 shadow-sm group-hover:border-green-200 transition-colors">
+          {avatarUrl && !imageError ? (
+            <img
+              src={avatarUrl}
+              alt="User Avatar"
+              className="w-full h-full object-cover"
+              referrerPolicy="no-referrer"
+              onError={() => setImageError(true)}
+            />
+          ) : (
+            <svg className="w-6 h-6 text-slate-500" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+          )}
+        </div>
+        <div className="hidden md:flex flex-col items-start text-left mr-1">
+          <span className="text-sm font-bold text-slate-800 leading-none">{displayName}</span>
+          <span className="text-[11px] text-slate-500 mt-1 font-medium truncate max-w-[120px]">
+            {displayEmail}
+          </span>
+        </div>
+      </button>
+
+      {isOpen && (
+        <div className="absolute right-0 mt-2 w-56 bg-white border border-slate-200 rounded-2xl shadow-2xl z-50 overflow-hidden">
+          <div className="p-2">
+            <Link
+              href="/dashboard/settings"
+              className="flex items-center gap-3 px-3 py-2.5 text-sm font-semibold text-slate-700 rounded-xl hover:bg-slate-50 hover:text-green-700 transition-all group/item"
+              onClick={() => setIsOpen(false)}
+            >
+              <div className="p-1.5 rounded-lg bg-slate-100 group-hover/item:bg-green-100 transition-colors">
+                <Settings className="w-4 h-4 text-slate-600 group-hover/item:text-green-600" />
+              </div>
+              Settings
+            </Link>
+
+            <div className="h-px bg-slate-100 my-1 mx-2" />
+
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-semibold text-red-600 rounded-xl hover:bg-red-50 transition-all group/logout"
+            >
+              <div className="p-1.5 rounded-lg bg-red-50/50 group-hover/logout:bg-red-100 transition-colors">
+                <LogOut className="w-4 h-4" />
+              </div>
+              Logout
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
