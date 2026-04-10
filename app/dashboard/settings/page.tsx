@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Key, Shield, CheckCircle2, Pencil, X, Save, CreditCard, Loader2, AlertCircle, Globe } from "lucide-react";
+import { UserCircle, Mail, Lock, Pencil, X, Save, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 export default function SettingsPage() {
@@ -11,87 +11,48 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [schoolId, setSchoolId] = useState<string | null>(null);
-  
-  // State for original data from DB
+
   const [formData, setFormData] = useState({
-    activeGateway: "midtrans" as "midtrans" | "xendit",
-    midtransClientKey: "",
-    midtransServerKey: "",
-    midtransMode: "sandbox" as "sandbox" | "production",
-    xenditPublicKey: "",
-    xenditSecretKey: "",
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "", 
   });
 
-  // State for form inputs when editing
   const [editData, setEditData] = useState({ ...formData });
 
-  // Fetch settings from Supabase on mount
   useEffect(() => {
-    const fetchSettings = async () => {
+    async function fetchUser() {
       try {
         setLoading(true);
-        
         const { data: { user }, error: authError } = await supabase.auth.getUser();
-        if (authError || !user) throw new Error("Silakan login kembali.");
+        if (authError || !user) throw new Error("Gagal mengambil data pengguna.");
 
-        let { data: profile, error: profileError } = await supabase
-          .from("users")
-          .select("school_id")
-          .eq("id", user.id)
-          .single();
+        const fullName = user.user_metadata?.full_name || "";
+        const nameParts = fullName.split(" ");
+        const firstName = nameParts[0] || "";
+        const lastName = nameParts.slice(1).join(" ") || "";
 
-        if (profileError) throw profileError;
+        const data = {
+          firstName,
+          lastName,
+          email: user.email || "",
+          password: "", 
+        };
 
-        let currentSchoolId = profile?.school_id;
-
-        if (!currentSchoolId) {
-          const { error: updateError } = await supabase
-            .from("users")
-            .update({ school_id: user.id })
-            .eq("id", user.id);
-          
-          if (updateError) throw updateError;
-          currentSchoolId = user.id;
-        }
-
-        setSchoolId(currentSchoolId);
-
-        const { data, error: fetchError } = await supabase
-          .from("payment_settings")
-          .select("*")
-          .eq("school_id", currentSchoolId)
-          .single();
-
-        if (fetchError && fetchError.code !== "PGRST116") {
-          throw fetchError;
-        }
-
-        if (data) {
-          const mappedData = {
-            activeGateway: data.active_gateway as "midtrans" | "xendit",
-            midtransClientKey: data.midtrans_client_key || "",
-            midtransServerKey: data.midtrans_server_key || "",
-            midtransMode: (data.midtrans_mode as "sandbox" | "production") || "sandbox",
-            xenditPublicKey: data.xendit_public_key || "",
-            xenditSecretKey: data.xendit_secret_key || "",
-          };
-          setFormData(mappedData);
-          setEditData(mappedData);
-        }
+        setFormData(data);
+        setEditData(data);
       } catch (err: any) {
-        console.error("Error fetching settings:", err);
-        setError("Gagal mengambil data pengaturan: " + err.message);
+        setError(err.message);
       } finally {
         setLoading(false);
       }
-    };
-
-    fetchSettings();
+    }
+    fetchUser();
   }, [supabase]);
 
   const handleEditClick = () => {
-    setEditData({ ...formData });
+    setEditData({ ...formData, password: "" });
     setIsEditing(true);
     setShowSuccess(false);
     setError(null);
@@ -103,38 +64,26 @@ export default function SettingsPage() {
   };
 
   const handleSaveClick = async () => {
-    if (!schoolId) return;
-
     try {
       setSaving(true);
       setError(null);
 
-      const { data: { user } } = await supabase.auth.getUser();
-
-      const { error: updateError } = await supabase.from("payment_settings").upsert({
-        school_id: schoolId,
-        active_gateway: editData.activeGateway,
-        midtrans_client_key: editData.midtransClientKey,
-        midtrans_server_key: editData.midtransServerKey,
-        midtrans_mode: editData.midtransMode,
-        xendit_public_key: editData.xenditPublicKey,
-        xendit_secret_key: editData.xenditSecretKey,
-        updated_at: new Date().toISOString(),
-        updated_by: user?.id,
+      const fullName = `${editData.firstName} ${editData.lastName}`.trim();
+      
+      const { error: updateError } = await supabase.auth.updateUser({
+        email: editData.email !== formData.email ? editData.email : undefined,
+        password: editData.password ? editData.password : undefined,
+        data: { full_name: fullName }
       });
 
       if (updateError) throw updateError;
 
-      setFormData({ ...editData });
+      setFormData({ ...editData, password: "" });
       setIsEditing(false);
       setShowSuccess(true);
-
-      setTimeout(() => {
-        setShowSuccess(false);
-      }, 3000);
+      setTimeout(() => setShowSuccess(false), 3000);
     } catch (err: any) {
-      console.error("Error saving settings:", err);
-      setError("Gagal menyimpan perubahan. Silakan coba lagi.");
+      setError(err.message || "Gagal menyimpan perubahan.");
     } finally {
       setSaving(false);
     }
@@ -142,288 +91,181 @@ export default function SettingsPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setEditData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleGatewayChange = (gateway: "midtrans" | "xendit") => {
-    if (!isEditing) return;
-    setEditData((prev) => ({
-      ...prev,
-      activeGateway: gateway,
-    }));
-  };
-
-  const handleMidtransModeChange = (mode: "sandbox" | "production") => {
-    if (!isEditing) return;
-    setEditData((prev) => ({
-      ...prev,
-      midtransMode: mode,
-    }));
+    setEditData((prev) => ({ ...prev, [name]: value }));
   };
 
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px]">
         <Loader2 className="w-10 h-10 text-[#1a7a4a] animate-spin mb-4" />
-        <p className="text-slate-600 font-medium">Memuat pengaturan...</p>
+        <p className="text-slate-600 font-medium font-poppins">Memuat profil...</p>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto pb-12">
+    <div className="max-w-3xl mx-auto pb-12 font-poppins">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-800">Pengaturan Pembayaran</h1>
+        <h1 className="text-3xl font-bold text-slate-800 tracking-tight">Pengaturan Profil</h1>
         <p className="text-slate-500 mt-2">
-          Pilih dan konfigurasikan payment gateway untuk transaksi sekolah.
+          Kelola informasi pribadi dan keamanan akun Anda.
         </p>
       </div>
 
       {showSuccess && (
-        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center text-green-700 animate-in fade-in slide-in-from-top-4 duration-300">
+        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-2xl flex items-center text-green-700 animate-in fade-in slide-in-from-top-4 duration-300">
           <CheckCircle2 className="w-5 h-5 mr-3 flex-shrink-0" />
-          <span className="font-medium">Konfigurasi berhasil disimpan.</span>
+          <span className="font-semibold text-sm text-[#1a7a4a]">Berhasil! Profil Anda telah diperbarui.</span>
         </div>
       )}
 
       {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center text-red-700 animate-in fade-in slide-in-from-top-4 duration-300">
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl flex items-center text-red-700 animate-in fade-in slide-in-from-top-4 duration-300">
           <AlertCircle className="w-5 h-5 mr-3 flex-shrink-0" />
-          <span className="font-medium">{error}</span>
+          <span className="font-semibold text-sm">{error}</span>
         </div>
       )}
 
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="h-32 bg-gradient-to-r from-[#1a7a4a] to-[#22c55e]"></div>
+      <div className="bg-white rounded-[2rem] shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden transition-all duration-300">
+        <div className="h-32 bg-gradient-to-r from-[#1a7a4a] via-[#22c55e] to-[#4ade80]"></div>
         
-        <div className="px-6 md:px-10 pb-10 relative">
-          <div className="relative flex justify-between items-end -mt-12 mb-8">
-            <div className="w-24 h-24 bg-white rounded-full p-1 border-4 border-white shadow-md flex items-center justify-center">
-              <div className="w-full h-full bg-slate-100 rounded-full flex items-center justify-center text-slate-400">
-                <CreditCard className="w-10 h-10" />
+        <div className="px-6 md:px-12 pb-12 relative">
+          <div className="flex justify-between items-end -mt-16 mb-12">
+            <div className="relative group">
+              <div className="w-32 h-32 bg-white rounded-3xl p-1.5 border border-slate-100 shadow-xl overflow-hidden transition-transform duration-300 group-hover:scale-105">
+                <div className="w-full h-full bg-slate-50 rounded-[1.25rem] flex items-center justify-center text-slate-300">
+                  <UserCircle className="w-20 h-20 text-slate-300" />
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="space-y-8">
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-3">
-                Payment Gateway Aktif
-              </label>
-              <div className="flex p-1 bg-slate-100 rounded-xl w-fit">
-                <button
-                  type="button"
-                  disabled={!isEditing}
-                  onClick={() => handleGatewayChange("midtrans")}
-                  className={`px-6 py-2 rounded-lg text-sm font-medium transition-all ${
-                    (isEditing ? editData.activeGateway : formData.activeGateway) === "midtrans"
-                      ? "bg-white text-[#1a7a4a] shadow-sm"
-                      : "text-slate-500 hover:text-slate-700"
-                  } ${!isEditing && "cursor-default"}`}
-                >
-                  Midtrans
-                </button>
-                <button
-                  type="button"
-                  disabled={!isEditing}
-                  onClick={() => handleGatewayChange("xendit")}
-                  className={`px-6 py-2 rounded-lg text-sm font-medium transition-all ${
-                    (isEditing ? editData.activeGateway : formData.activeGateway) === "xendit"
-                      ? "bg-white text-[#1a7a4a] shadow-sm"
-                      : "text-slate-500 hover:text-slate-700"
-                  } ${!isEditing && "cursor-default"}`}
-                >
-                  Xendit
-                </button>
-              </div>
-              <p className="mt-2 text-xs text-slate-400 italic">
-                Gateway terpilih akan digunakan untuk memproses seluruh pembayaran SPP.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 gap-8 pt-4 border-t border-slate-100">
-              {(isEditing ? editData.activeGateway : formData.activeGateway) === "midtrans" ? (
-                <div className="space-y-6">
-                  <div className="flex items-center space-x-2 text-slate-800">
-                    <div className="p-2 bg-green-50 rounded-lg">
-                       <Globe className="w-5 h-5 text-[#1a7a4a]" />
-                    </div>
-                    <h3 className="text-lg font-bold">Kredensial Midtrans</h3>
-                  </div>
-
-                    <div className="space-y-1">
-                      <label className="block text-sm font-medium text-slate-500">Mode Lingkungan (Environment)</label>
-                      <div className="flex p-0.5 bg-slate-100 rounded-lg w-fit">
-                        <button
-                          type="button"
-                          disabled={!isEditing}
-                          onClick={() => handleMidtransModeChange("sandbox")}
-                          className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all ${
-                            (isEditing ? editData.midtransMode : formData.midtransMode) === "sandbox"
-                              ? "bg-white text-[#1a7a4a] shadow-sm"
-                              : "text-slate-500 hover:text-slate-700"
-                          }`}
-                        >
-                          Sandbox
-                        </button>
-                        <button
-                          type="button"
-                          disabled={!isEditing}
-                          onClick={() => handleMidtransModeChange("production")}
-                          className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all ${
-                            (isEditing ? editData.midtransMode : formData.midtransMode) === "production"
-                              ? "bg-white text-emerald-700 shadow-sm"
-                              : "text-slate-500 hover:text-slate-700"
-                          }`}
-                        >
-                          Production
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="space-y-1">
-                      <label className="block text-sm font-medium text-slate-500">Client Key</label>
-                      {isEditing ? (
-                        <div className="relative">
-                          <Key className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-                          <input
-                            type="text"
-                            name="midtransClientKey"
-                            value={editData.midtransClientKey}
-                            onChange={handleChange}
-                            className="block w-full pl-10 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-green-500 focus:border-green-500 sm:text-sm outline-none"
-                            placeholder="SB-Mid-client-..."
-                          />
-                        </div>
-                      ) : (
-                        <div className="flex items-center space-x-2 p-2 bg-slate-50 rounded-lg border border-slate-100">
-                           <Key className="h-4 w-4 text-slate-400" />
-                           <p className="text-slate-800 font-mono text-sm truncate">{formData.midtransClientKey || "-"}</p>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="space-y-1">
-                      <label className="block text-sm font-medium text-slate-500">Server Key</label>
-                      {isEditing ? (
-                        <div className="relative">
-                          <Shield className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-                          <input
-                            type="text"
-                            name="midtransServerKey"
-                            value={editData.midtransServerKey}
-                            onChange={handleChange}
-                            className="block w-full pl-10 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-green-500 focus:border-green-500 sm:text-sm outline-none"
-                            placeholder="SB-Mid-server-..."
-                          />
-                        </div>
-                      ) : (
-                        <div className="flex items-center space-x-2 p-2 bg-slate-50 rounded-lg border border-slate-100">
-                           <Shield className="h-4 w-4 text-slate-400" />
-                           <p className="text-slate-800 font-mono text-sm">
-                             {formData.midtransServerKey ? "•".repeat(20) : "-"}
-                           </p>
-                        </div>
-                      )}
-                    </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10">
+            {/* Nama Depan */}
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-[#1a7a4a] uppercase tracking-wider ml-1">Nama Depan</label>
+              {isEditing ? (
+                <div className="relative group">
+                  <UserCircle className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-[#1a7a4a] transition-colors" />
+                  <input
+                    type="text"
+                    name="firstName"
+                    value={editData.firstName}
+                    onChange={handleChange}
+                    className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none focus:bg-white focus:border-[#1a7a4a] focus:ring-4 focus:ring-green-500/10 transition-all text-slate-700 font-medium"
+                    placeholder="Masukkan nama depan"
+                  />
                 </div>
               ) : (
-                <div className="space-y-6">
-                  <div className="flex items-center space-x-2 text-slate-800">
-                    <div className="p-2 bg-green-50 rounded-lg">
-                       <Globe className="w-5 h-5 text-green-600" />
-                    </div>
-                    <h3 className="text-lg font-bold">Kredensial Xendit</h3>
-                  </div>
-
-                  <div className="space-y-4 max-w-2xl">
-                    <div className="space-y-1">
-                      <label className="block text-sm font-medium text-slate-500">Public Key</label>
-                      {isEditing ? (
-                        <div className="relative">
-                          <Key className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-                          <input
-                            type="text"
-                            name="xenditPublicKey"
-                            value={editData.xenditPublicKey}
-                            onChange={handleChange}
-                            className="block w-full pl-10 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-green-500 focus:border-green-500 sm:text-sm outline-none"
-                            placeholder="xnd_public_key_..."
-                          />
-                        </div>
-                      ) : (
-                        <div className="flex items-center space-x-2 p-2 bg-slate-50 rounded-lg border border-slate-100">
-                           <Key className="h-4 w-4 text-slate-400" />
-                           <p className="text-slate-800 font-mono text-sm truncate">{formData.xenditPublicKey || "-"}</p>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="space-y-1">
-                      <label className="block text-sm font-medium text-slate-500">Secret Key</label>
-                      {isEditing ? (
-                        <div className="relative">
-                          <Shield className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-                          <input
-                            type="text"
-                            name="xenditSecretKey"
-                            value={editData.xenditSecretKey}
-                            onChange={handleChange}
-                            className="block w-full pl-10 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-green-500 focus:border-green-500 sm:text-sm outline-none"
-                            placeholder="xnd_development_..."
-                          />
-                        </div>
-                      ) : (
-                        <div className="flex items-center space-x-2 p-2 bg-slate-50 rounded-lg border border-slate-100">
-                           <Shield className="h-4 w-4 text-slate-400" />
-                           <p className="text-slate-800 font-mono text-sm">
-                             {formData.xenditSecretKey ? "•".repeat(20) : "-"}
-                           </p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                <div className="px-5 py-4 bg-slate-50 rounded-2xl border border-transparent flex items-center gap-3">
+                  <span className="text-slate-700 font-semibold">{formData.firstName || "Belum diisi"}</span>
                 </div>
               )}
             </div>
 
-            <div className="flex justify-end space-x-3 pt-8 border-t border-slate-100">
-              {!isEditing ? (
-                <button
-                  onClick={handleEditClick}
-                  className="flex items-center space-x-2 px-6 py-2.5 border border-slate-300 rounded-xl text-sm font-semibold text-slate-700 bg-white hover:bg-slate-50 transition-all shadow-sm active:scale-95"
-                >
-                  <Pencil className="w-4 h-4" />
-                  <span>Edit Pengaturan</span>
-                </button>
+            {/* Nama Belakang */}
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-[#1a7a4a] uppercase tracking-wider ml-1">Nama Belakang</label>
+              {isEditing ? (
+                <div className="relative group">
+                  <UserCircle className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-[#1a7a4a] transition-colors" />
+                  <input
+                    type="text"
+                    name="lastName"
+                    value={editData.lastName}
+                    onChange={handleChange}
+                    className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none focus:bg-white focus:border-[#1a7a4a] focus:ring-4 focus:ring-green-500/10 transition-all text-slate-700 font-medium"
+                    placeholder="Masukkan nama belakang"
+                  />
+                </div>
               ) : (
-                <>
-                  <button
-                    onClick={handleCancelClick}
-                    disabled={saving}
-                    className="flex items-center space-x-2 px-6 py-2.5 border border-slate-300 rounded-xl text-sm font-semibold text-slate-700 bg-white hover:bg-slate-50 transition-all disabled:opacity-50"
-                  >
-                    <X className="w-4 h-4" />
-                    <span>Batal</span>
-                  </button>
-                   <button
-                    onClick={handleSaveClick}
-                    disabled={saving}
-                    className="flex items-center space-x-2 px-6 py-2.5 border border-transparent rounded-xl text-sm font-bold text-white bg-[#1a7a4a] hover:bg-[#15603b] shadow-md transition-all disabled:opacity-70 active:scale-95"
-                  >
-                    {saving ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <Save className="w-4 h-4" />
-                    )}
-                    <span>{saving ? "Menyimpan..." : "Simpan Perubahan"}</span>
-                  </button>
-                </>
+                <div className="px-5 py-4 bg-slate-50 rounded-2xl border border-transparent flex items-center gap-3">
+                  <span className="text-slate-700 font-semibold">{formData.lastName || "-"}</span>
+                </div>
               )}
             </div>
+
+            {/* Email */}
+            <div className="space-y-2 md:col-span-2">
+              <label className="text-xs font-bold text-[#1a7a4a] uppercase tracking-wider ml-1">Email</label>
+              {isEditing ? (
+                <div className="relative group">
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-[#1a7a4a] transition-colors" />
+                  <input
+                    type="email"
+                    name="email"
+                    value={editData.email}
+                    onChange={handleChange}
+                    className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none focus:bg-white focus:border-[#1a7a4a] focus:ring-4 focus:ring-green-500/10 transition-all text-slate-700 font-medium"
+                    placeholder="nama@email.com"
+                  />
+                </div>
+              ) : (
+                <div className="px-5 py-4 bg-slate-50 rounded-2xl border border-transparent flex items-center gap-3 w-full">
+                  <Mail className="w-4 h-4 text-slate-400" />
+                  <span className="text-slate-700 font-semibold">{formData.email}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Password */}
+            <div className="space-y-2 md:col-span-2">
+              <label className="text-xs font-bold text-[#1a7a4a] uppercase tracking-wider ml-1">Password</label>
+              {isEditing ? (
+                <div className="relative group">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-[#1a7a4a] transition-colors" />
+                  <input
+                    type="password"
+                    name="password"
+                    value={editData.password}
+                    onChange={handleChange}
+                    className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none focus:bg-white focus:border-[#1a7a4a] focus:ring-4 focus:ring-green-500/10 transition-all text-slate-700 font-medium"
+                    placeholder="Biarkan kosong jika tidak ingin mengubah"
+                  />
+                </div>
+              ) : (
+                <div className="px-5 py-4 bg-slate-50 rounded-2xl border border-transparent flex items-center gap-3 w-full">
+                  <Lock className="w-4 h-4 text-slate-400" />
+                  <span className="text-slate-700 font-semibold tracking-widest text-xs">••••••••••••</span>
+                </div>
+              )}
+              <p className="text-[10px] text-slate-400 ml-1 italic font-medium">Password disimpan dengan enkripsi tingkat tinggi demi keamanan akun Anda.</p>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-3 mt-16 pt-10 border-t border-slate-100">
+            {!isEditing ? (
+              <button
+                onClick={handleEditClick}
+                className="flex items-center gap-2.5 px-8 py-3.5 bg-white border-2 border-slate-100 rounded-2xl text-sm font-bold text-slate-700 hover:bg-slate-50 hover:border-slate-200 hover:text-slate-900 transition-all shadow-sm active:scale-95"
+              >
+                <Pencil className="w-4 h-4" />
+                Edit Profil
+              </button>
+            ) : (
+              <>
+                <button
+                  onClick={handleCancelClick}
+                  disabled={saving}
+                  className="flex items-center gap-2.5 px-8 py-3.5 bg-white border-2 border-slate-100 rounded-2xl text-sm font-bold text-slate-500 hover:bg-slate-50 hover:text-slate-700 transition-all disabled:opacity-50"
+                >
+                  <X className="w-4 h-4" />
+                  Batal
+                </button>
+                <button
+                  onClick={handleSaveClick}
+                  disabled={saving}
+                  className="flex items-center gap-2.5 px-10 py-3.5 bg-[#1a7a4a] rounded-2xl text-sm font-bold text-white hover:bg-[#15603b] shadow-lg shadow-green-900/10 transition-all disabled:opacity-70 active:scale-95"
+                >
+                  {saving ? (
+                    <Loader2 className="w-4 h-4 animate-spin text-white" />
+                  ) : (
+                    <Save className="w-4 h-4" />
+                  )}
+                  {saving ? "Menyimpan..." : "Simpan Perubahan"}
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>

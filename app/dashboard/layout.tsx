@@ -4,8 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  User,
-  UserCircle,
+
   Settings,
   Receipt,
   Files,
@@ -13,11 +12,10 @@ import {
   Users,
   GraduationCap,
   Building,
-  CreditCard,
-  HelpCircle,
   Menu,
   X,
   FileUp,
+  LayoutDashboard,
 } from "lucide-react";
 import { UserDropdown } from "@/components/admin/UserDropdown";
 
@@ -79,13 +77,10 @@ export default function DashboardLayout({
             </h3>
             <div className="space-y-1">
               <Link href="/dashboard" className={getLinkClass("/dashboard")}>
-                <User className="w-4 h-4 mr-3" />
+                <LayoutDashboard className="w-4 h-4 mr-3" />
                 Dashboard
               </Link>
-              <Link href="/dashboard/profile" className={getLinkClass("/dashboard/profile")}>
-                <UserCircle className="w-4 h-4 mr-3" />
-                Profile
-              </Link>
+
               <Link href="/dashboard/settings" className={getLinkClass("/dashboard/settings")}>
                 <Settings className="w-4 h-4 mr-3" />
                 Settings
@@ -140,21 +135,7 @@ export default function DashboardLayout({
             </div>
           </div>
 
-          <div>
-            <h3 className="px-3 text-[10px] font-bold tracking-[0.1em] text-[#1a7a4a]/60 uppercase mb-3">
-              ACCOUNT
-            </h3>
-            <div className="space-y-1">
-              <Link href="/dashboard/billing" className={getLinkClass("/dashboard/billing")}>
-                <CreditCard className="w-4 h-4 mr-3" />
-                Billing
-              </Link>
-              <Link href="/dashboard/support" className={getLinkClass("/dashboard/support")}>
-                <HelpCircle className="w-4 h-4 mr-3" />
-                Support
-              </Link>
-            </div>
-          </div>
+
         </nav>
       </aside>
 
