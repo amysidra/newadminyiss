@@ -226,7 +226,7 @@ export default function CreateInvoicePage() {
                                     value={searchQuery}
                                     onChange={handleSearchChange}
                                     onFocus={() => setIsDropdownOpen(true)}
-                                    className="w-full pl-4 pr-10 py-3 rounded-xl bg-white border border-slate-300 text-slate-900 focus:border-green-500 focus:ring-4 focus:ring-green-500/10 transition-all duration-200 outline-none hover:border-green-300 placeholder-slate-400"
+                                    className="w-full pl-4 pr-10 py-3 rounded-xl bg-white border border-slate-300 text-slate-900 focus:border-[#1a7a4a] focus:ring-4 focus:ring-green-500/10 transition-all duration-200 outline-none hover:border-green-300 placeholder-slate-400"
                                     placeholder="Ketik nama untuk mencari..."
                                     autoComplete="off"
                                 />
@@ -299,7 +299,7 @@ export default function CreateInvoicePage() {
                                     value={formData.amount}
                                     onChange={handleAmountChange}
                                     required
-                                    className="w-full pl-12 pr-4 py-3 rounded-xl bg-white border border-slate-300 text-slate-900 focus:border-green-500 focus:ring-4 focus:ring-green-500/10 transition-all duration-200 outline-none hover:border-green-300 placeholder-slate-400"
+                                    className="w-full pl-12 pr-4 py-3 rounded-xl bg-white border border-slate-300 text-slate-900 focus:border-[#1a7a4a] focus:ring-4 focus:ring-green-500/10 transition-all duration-200 outline-none hover:border-green-300 placeholder-slate-400"
                                     placeholder="Misal: 175.000"
                                 />
                             </div>
@@ -317,7 +317,7 @@ export default function CreateInvoicePage() {
                             onChange={handleChange}
                             required
                             rows={4}
-                            className="w-full px-4 py-3 rounded-xl bg-white border border-slate-300 text-slate-900 focus:border-green-500 focus:ring-4 focus:ring-green-500/10 transition-all duration-200 outline-none hover:border-green-300 resize-none placeholder-slate-400"
+                            className="w-full px-4 py-3 rounded-xl bg-white border border-slate-300 text-slate-900 focus:border-[#1a7a4a] focus:ring-4 focus:ring-green-500/10 transition-all duration-200 outline-none hover:border-green-300 resize-none placeholder-slate-400"
                             placeholder="Misal: SPP Bulan Desember"
                         />
                     </div>
@@ -326,7 +326,7 @@ export default function CreateInvoicePage() {
                         <button
                             type="submit"
                             disabled={status.loading || !formData.student_id}
-                            className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3.5 rounded-xl shadow-sm hover:shadow-md active:scale-[0.98] transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed flex justify-center items-center gap-2"
+                            className="w-full bg-[#1a7a4a] hover:bg-[#15603b] text-white font-bold py-3.5 rounded-xl shadow-md hover:shadow-lg active:scale-[0.98] transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed flex justify-center items-center gap-2"
                         >
                             {status.loading ? (
                                 <>

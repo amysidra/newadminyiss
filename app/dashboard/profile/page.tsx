@@ -134,7 +134,7 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px]">
-        <Loader2 className="w-10 h-10 text-green-600 animate-spin mb-4" />
+        <Loader2 className="w-10 h-10 text-[#1a7a4a] animate-spin mb-4" />
         <p className="text-slate-600 font-medium">Memuat data profil...</p>
       </div>
     );
@@ -164,7 +164,7 @@ export default function ProfilePage() {
       )}
 
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="h-32 bg-gradient-to-r from-green-600 to-emerald-500"></div>
+        <div className="h-32 bg-gradient-to-r from-[#1a7a4a] to-[#22c55e]"></div>
         
         <div className="px-6 md:px-10 pb-10 relative">
           <div className="relative flex justify-between items-end -mt-12 mb-8">
@@ -196,7 +196,7 @@ export default function ProfilePage() {
                           name="firstName"
                           value={editData.firstName}
                           onChange={handleChange}
-                          className="block w-full pl-10 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-green-500 focus:border-green-500 sm:text-sm transition-colors outline-none"
+                          className="block w-full pl-10 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-[#1a7a4a] focus:border-[#1a7a4a] sm:text-sm transition-colors outline-none"
                           placeholder="Masukkan nama depan"
                         />
                       </div>
@@ -219,7 +219,7 @@ export default function ProfilePage() {
                           name="lastName"
                           value={editData.lastName}
                           onChange={handleChange}
-                          className="block w-full pl-10 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-green-500 focus:border-green-500 sm:text-sm transition-colors outline-none"
+                          className="block w-full pl-10 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-[#1a7a4a] focus:border-[#1a7a4a] sm:text-sm transition-colors outline-none"
                           placeholder="Masukkan nama belakang"
                         />
                       </div>
@@ -250,7 +250,7 @@ export default function ProfilePage() {
                           name="schoolName"
                           value={editData.schoolName}
                           onChange={handleChange}
-                          className="block w-full pl-10 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-green-500 focus:border-green-500 sm:text-sm transition-colors outline-none"
+                          className="block w-full pl-10 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-[#1a7a4a] focus:border-[#1a7a4a] sm:text-sm transition-colors outline-none"
                           placeholder="Masukkan nama sekolah"
                         />
                       </div>
@@ -310,7 +310,7 @@ export default function ProfilePage() {
                   <button
                     onClick={handleSaveClick}
                     disabled={saving}
-                    className="flex items-center space-x-2 px-5 py-2 border border-transparent rounded-lg text-sm font-medium text-white bg-green-600 hover:bg-green-700 shadow-sm transition-colors disabled:opacity-70"
+                    className="flex items-center space-x-2 px-6 py-2 border border-transparent rounded-xl text-sm font-bold text-white bg-[#1a7a4a] hover:bg-[#15603b] shadow-md transition-all disabled:opacity-70 active:scale-95"
                   >
                     {saving ? (
                       <Loader2 className="w-4 h-4 animate-spin" />

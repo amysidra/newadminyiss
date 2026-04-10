@@ -151,7 +151,7 @@ export default function GuardiansPage() {
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 px-5 py-2.5 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 transition-all shadow-lg shadow-green-600/20 active:scale-95"
+          className="flex items-center gap-2 px-5 py-2.5 bg-[#1a7a4a] text-white rounded-xl font-bold hover:bg-[#15603b] transition-all shadow-lg shadow-green-600/10 active:scale-95"
         >
           <Plus className="w-5 h-5" />
           Tambah Wali Murid
@@ -245,7 +245,7 @@ export default function GuardiansPage() {
                 <button
                   type="submit"
                   disabled={isSaving}
-                  className="flex-[2] py-3.5 rounded-2xl bg-green-600 text-white font-bold shadow-lg shadow-green-600/20 hover:bg-green-700 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="flex-[2] py-3.5 rounded-2xl bg-[#1a7a4a] text-white font-bold shadow-lg shadow-green-600/10 hover:bg-[#15603b] active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   {isSaving ? (
                     <>
@@ -320,7 +320,7 @@ export default function GuardiansPage() {
       <div className="space-y-4">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-slate-200">
-            <Loader2 className="w-8 h-8 text-green-600 animate-spin mb-4" />
+            <Loader2 className="w-8 h-8 text-[#1a7a4a] animate-spin mb-4" />
             <p className="text-slate-500">Memuat data wali murid...</p>
           </div>
         ) : error ? (
@@ -431,7 +431,7 @@ export default function GuardiansPage() {
                 </div>
 
                 <div className="pt-4 border-t border-slate-100 flex items-center justify-between mt-auto">
-                  <button className="text-xs font-bold text-green-600 flex items-center gap-1.5 hover:underline">
+                  <button className="text-xs font-bold text-[#1a7a4a] flex items-center gap-1.5 hover:underline">
                     <ExternalLink className="w-3.5 h-3.5" />
                     Detail Lengkap
                   </button>

@@ -330,14 +330,14 @@ export default function InvoicesListPage() {
         </div>
 
         <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex items-center gap-5 transition-all hover:shadow-md">
-          <div className="h-14 w-14 rounded-2xl bg-green-50 flex items-center justify-center text-green-600">
+          <div className="h-14 w-14 rounded-2xl bg-green-50 flex items-center justify-center text-[#1a7a4a]">
             <CheckCircle2 className="w-7 h-7" />
           </div>
           <div>
             <p className="text-sm font-medium text-slate-500">Total Terbayar</p>
-            <p className="text-2xl font-bold text-green-600 mt-1">Rp {stats.paid.toLocaleString("id-ID")}</p>
+            <p className="text-2xl font-bold text-[#1a7a4a] mt-1">Rp {stats.paid.toLocaleString("id-ID")}</p>
           </div>
-          <div className="ml-auto text-green-500 opacity-20">
+          <div className="ml-auto text-[#1a7a4a] opacity-20">
              <Banknote className="w-12 h-12" />
           </div>
         </div>
@@ -354,13 +354,13 @@ export default function InvoicesListPage() {
                 onClick={() => setActiveTab(tab.id)}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
                   activeTab === tab.id
-                    ? "bg-white text-green-700 shadow-sm"
+                    ? "bg-white text-[#1a7a4a] shadow-sm"
                     : "text-slate-500 hover:text-slate-800"
                 }`}
               >
                 {tab.label}
                 <span className={`ml-2 px-1.5 py-0.5 rounded-md text-[10px] ${
-                  activeTab === tab.id ? "bg-green-100 text-green-700" : "bg-slate-200 text-slate-600"
+                  activeTab === tab.id ? "bg-green-100 text-[#1a7a4a]" : "bg-slate-200 text-slate-600"
                 }`}>
                   {tab.count}
                 </span>
@@ -370,11 +370,11 @@ export default function InvoicesListPage() {
 
           {/* Search */}
           <div className="relative group w-full md:max-w-xs">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 transition-colors group-focus-within:text-green-500" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 transition-colors group-focus-within:text-[#1a7a4a]" />
             <input
               type="text"
               placeholder="Cari invoice atau nama..."
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:border-green-500 focus:ring-4 focus:ring-green-500/10 transition-all text-sm"
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:border-[#1a7a4a] focus:ring-4 focus:ring-green-500/10 transition-all text-sm"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -402,7 +402,7 @@ export default function InvoicesListPage() {
             >
               <div className="flex items-start gap-4">
                 <div className={`p-3 rounded-2xl flex-shrink-0 ${
-                  inv.status === "PAID" ? "bg-green-50 text-green-600" :
+                  inv.status === "PAID" ? "bg-green-50 text-[#1a7a4a]" :
                   inv.status === "PENDING" ? "bg-amber-50 text-amber-600" :
                   inv.status === "UNPAID" ? "bg-blue-50 text-blue-600" :
                   "bg-rose-50 text-rose-600"
@@ -412,9 +412,9 @@ export default function InvoicesListPage() {
                 
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 mb-1 flex-wrap">
-                    <h3 className="font-bold text-slate-800 group-hover:text-green-700 transition-colors truncate">{inv.description}</h3>
+                    <h3 className="font-bold text-slate-800 group-hover:text-[#1a7a4a] transition-colors truncate">{inv.description}</h3>
                     <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                      inv.status === "PAID" ? "bg-green-100 text-green-700" :
+                      inv.status === "PAID" ? "bg-green-100 text-[#1a7a4a]" :
                       inv.status === "PENDING" ? "bg-amber-100 text-amber-700" :
                       inv.status === "UNPAID" ? "bg-blue-100 text-blue-700" :
                       "bg-rose-100 text-rose-700"
@@ -456,7 +456,7 @@ export default function InvoicesListPage() {
                     <button 
                       onClick={() => initiateMarkAsPaidCash(inv)}
                       disabled={loadingId === inv.id}
-                      className="px-4 py-2 rounded-xl border border-green-600 text-green-700 text-xs font-bold hover:bg-green-50 transition-all flex items-center gap-2 disabled:opacity-50"
+                      className="px-4 py-2 rounded-xl border border-[#1a7a4a] text-[#1a7a4a] text-xs font-bold hover:bg-green-50 transition-all flex items-center gap-2 disabled:opacity-50"
                     >
                       Bayar Cash
                     </button>
@@ -501,7 +501,7 @@ export default function InvoicesListPage() {
                 </button>
                 <button 
                   onClick={handleConfirmMarkAsPaidCash}
-                  className="flex-[2] py-3.5 rounded-2xl bg-green-600 text-white font-bold shadow-lg shadow-green-600/20 hover:bg-green-700 active:scale-95 transition-all"
+                  className="flex-[2] py-3.5 rounded-2xl bg-[#1a7a4a] text-white font-bold shadow-lg shadow-green-600/20 hover:bg-[#15603b] active:scale-95 transition-all"
                 >
                   Konfirmasi Lunas
                 </button>

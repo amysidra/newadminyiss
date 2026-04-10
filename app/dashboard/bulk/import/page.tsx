@@ -263,7 +263,7 @@ export default function BulkImportPage() {
       {step === 1 && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm flex flex-col items-center justify-center text-center">
-             <div className="h-16 w-16 bg-green-50 rounded-2xl flex items-center justify-center text-green-600 mb-6">
+             <div className="h-16 w-16 bg-green-50 rounded-2xl flex items-center justify-center text-[#1a7a4a] mb-6">
                 <Download className="w-8 h-8" />
              </div>
              <h2 className="text-xl font-bold text-slate-800 mb-2">Unduh Template</h2>
@@ -271,7 +271,7 @@ export default function BulkImportPage() {
              <div className="flex flex-col sm:flex-row gap-4">
                 <button 
                     onClick={downloadTemplate}
-                    className="flex items-center gap-2 px-6 py-3 bg-white border-2 border-green-600 text-green-600 rounded-xl font-bold hover:bg-green-50 transition-all active:scale-95"
+                    className="flex items-center gap-2 px-6 py-3 bg-white border-2 border-[#1a7a4a] text-[#1a7a4a] rounded-xl font-bold hover:bg-green-50 transition-all active:scale-95"
                 >
                     <Download className="w-5 h-5" />
                     Download Template
@@ -322,8 +322,8 @@ export default function BulkImportPage() {
                  <p className="text-2xl font-bold text-blue-600">{stats.linkedGuardians} <span className="text-xs font-medium text-slate-400">Existing</span></p>
               </div>
               <div className="bg-white p-4 rounded-2xl border border-slate-200">
-                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 text-green-600">Wali Baru</p>
-                 <p className="text-2xl font-bold text-green-600">+{stats.newGuardians}</p>
+                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 text-[#1a7a4a]">Wali Baru</p>
+                 <p className="text-2xl font-bold text-[#1a7a4a]">+{stats.newGuardians}</p>
               </div>
               <div className="bg-white p-4 rounded-2xl border border-slate-200">
                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 text-rose-600">Masalah Data</p>
@@ -348,7 +348,7 @@ export default function BulkImportPage() {
                        <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
                           <td className="px-6 py-4">
                              {row.status === "ready" ? (
-                                <div className="flex items-center gap-1.5 text-green-600 font-bold text-xs">
+                                <div className="flex items-center gap-1.5 text-[#1a7a4a] font-bold text-xs">
                                    <CheckCircle2 className="w-4 h-4" /> Ready
                                 </div>
                              ) : row.status === "error" ? (
@@ -399,7 +399,7 @@ export default function BulkImportPage() {
               <button 
                  onClick={startImport}
                  disabled={loading || stats.errors > 0 || stats.total === 0}
-                 className="px-10 py-4 bg-green-600 text-white rounded-2xl font-bold hover:bg-green-700 transition-all shadow-xl shadow-green-600/20 active:scale-95 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                 className="px-10 py-4 bg-[#1a7a4a] text-white rounded-2xl font-bold hover:bg-[#15603b] transition-all shadow-xl shadow-green-600/20 active:scale-95 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                  {loading ? (
                     <><Loader2 className="w-5 h-5 animate-spin" /> Sedang Memproses...</>
@@ -413,7 +413,7 @@ export default function BulkImportPage() {
 
       {step === 3 && (
         <div className="bg-white p-12 rounded-3xl border border-slate-200 shadow-xl flex flex-col items-center justify-center text-center animate-in zoom-in-95 duration-500">
-           <div className="h-24 w-24 bg-green-100 rounded-full flex items-center justify-center text-green-600 mb-8 animate-bounce">
+           <div className="h-24 w-24 bg-green-100 rounded-full flex items-center justify-center text-[#1a7a4a] mb-8 animate-bounce">
               <CheckCircle2 className="w-12 h-12" />
            </div>
            <h2 className="text-3xl font-black text-slate-800 mb-4 uppercase">Impor Berhasil!</h2>
@@ -423,7 +423,7 @@ export default function BulkImportPage() {
            <div className="flex flex-col sm:flex-row gap-4">
               <Link 
                  href="/dashboard/students"
-                 className="px-8 py-3.5 bg-green-600 text-white rounded-2xl font-bold hover:bg-green-700 transition-all shadow-lg shadow-green-600/20 active:scale-95 flex items-center gap-2"
+                 className="px-8 py-3.5 bg-[#1a7a4a] text-white rounded-2xl font-bold hover:bg-[#15603b] transition-all shadow-lg shadow-green-600/20 active:scale-95 flex items-center gap-2"
               >
                  <Users className="w-5 h-5" /> Lihat Database Murid
               </Link>

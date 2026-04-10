@@ -31,12 +31,12 @@ export default function DashboardLayout({
 
   function getLinkClass(path: string) {
     return pathname === path
-      ? "flex items-center px-3 py-2 text-sm font-medium rounded-md bg-green-50 text-green-700"
-      : "flex items-center px-3 py-2 text-sm font-medium rounded-md text-slate-600 hover:bg-green-50 hover:text-green-700";
+      ? "flex items-center px-3 py-2 text-sm font-semibold rounded-lg bg-green-50 text-[#1a7a4a]"
+      : "flex items-center px-3 py-2 text-sm font-medium rounded-lg text-slate-600 hover:bg-green-50 hover:text-[#1a7a4a] transition-colors";
   }
 
   return (
-    <div className="flex h-screen bg-slate-50 font-sans">
+    <div className="flex h-screen bg-[#f4f6f8] font-poppins">
       {/* Mobile sidebar backdrop */}
       {isSidebarOpen && (
         <div
@@ -55,22 +55,13 @@ export default function DashboardLayout({
         <div className="h-16 flex items-center justify-between px-6 border-b border-slate-100 flex-shrink-0">
           <Link
             href="/dashboard"
-            className="flex items-center gap-2 font-bold text-lg text-slate-800"
+            className="flex items-center gap-2"
           >
-            <svg
-              width="28"
-              height="28"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#15803d"
-              strokeWidth="2.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-              <polyline points="9 22 9 12 15 12 15 22" />
-            </svg>
-            <span>YISS Admin</span>
+            <img
+              src="/LogoYiss.png"
+              alt="Logo YISS"
+              className="h-14 w-auto object-contain"
+            />
           </Link>
           <button
             className="md:hidden p-1.5 -mr-2 rounded-md hover:bg-slate-100 text-slate-500"
@@ -83,7 +74,7 @@ export default function DashboardLayout({
         {/* Navigation */}
         <nav className="flex-1 px-4 py-6 space-y-8">
           <div>
-            <h3 className="px-3 text-xs font-bold tracking-wider text-green-600/70 uppercase mb-3">
+            <h3 className="px-3 text-[10px] font-bold tracking-[0.1em] text-[#1a7a4a]/60 uppercase mb-3">
               DASHBOARD
             </h3>
             <div className="space-y-1">
@@ -103,7 +94,7 @@ export default function DashboardLayout({
           </div>
 
           <div>
-            <h3 className="px-3 text-xs font-bold tracking-wider text-green-600/70 uppercase mb-3">
+            <h3 className="px-3 text-[10px] font-bold tracking-[0.1em] text-[#1a7a4a]/60 uppercase mb-3">
               SPP
             </h3>
             <div className="space-y-1">
@@ -123,7 +114,7 @@ export default function DashboardLayout({
           </div>
 
           <div>
-            <h3 className="px-3 text-xs font-bold tracking-wider text-green-600/70 uppercase mb-3">
+            <h3 className="px-3 text-[10px] font-bold tracking-[0.1em] text-[#1a7a4a]/60 uppercase mb-3">
               DATABASE
             </h3>
             <div className="space-y-1">
@@ -150,7 +141,7 @@ export default function DashboardLayout({
           </div>
 
           <div>
-            <h3 className="px-3 text-xs font-bold tracking-wider text-green-600/70 uppercase mb-3">
+            <h3 className="px-3 text-[10px] font-bold tracking-[0.1em] text-[#1a7a4a]/60 uppercase mb-3">
               ACCOUNT
             </h3>
             <div className="space-y-1">
@@ -178,7 +169,7 @@ export default function DashboardLayout({
             >
               <Menu className="w-6 h-6" />
             </button>
-            <span className="font-bold text-lg text-slate-800 ml-2">YISS Admin</span>
+            <span className="font-bold text-lg text-slate-800 ml-2">Admin YISS</span>
           </div>
 
           <UserDropdown />

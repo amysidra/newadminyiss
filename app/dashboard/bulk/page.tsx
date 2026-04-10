@@ -154,7 +154,7 @@ export default function BulkInvoicesPage() {
         <div className="max-w-4xl mx-auto">
             <header className="mb-8">
                 <div className="flex items-center gap-3 mb-2">
-                    <div className="p-2 bg-green-100 rounded-lg text-green-600">
+                    <div className="p-2 bg-green-50 rounded-lg text-[#1a7a4a]">
                         <Users className="w-6 h-6" />
                     </div>
                     <h1 className="text-3xl font-bold text-slate-800 tracking-tight">Buat Tagihan Massal</h1>
@@ -200,7 +200,7 @@ export default function BulkInvoicesPage() {
                                 name="unit"
                                 value={formData.unit}
                                 onChange={handleChange}
-                                className="w-full px-4 py-3 rounded-xl bg-white border border-slate-300 text-slate-900 focus:border-green-500 focus:ring-4 focus:ring-green-500/10 transition-all duration-200 outline-none hover:border-green-300"
+                                className="w-full px-4 py-3 rounded-xl bg-white border border-slate-300 text-slate-900 focus:border-[#1a7a4a] focus:ring-4 focus:ring-green-500/10 transition-all duration-200 outline-none hover:border-green-300"
                             >
                                 <option value="">Semua Jenjang</option>
                                 <option value="TK">TK</option>
@@ -268,7 +268,7 @@ export default function BulkInvoicesPage() {
                         <button
                             type="submit"
                             disabled={status.loading}
-                            className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3.5 rounded-xl shadow-sm hover:shadow-md active:scale-[0.98] transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed flex justify-center items-center gap-2"
+                            className="w-full bg-[#1a7a4a] hover:bg-[#15603b] text-white font-bold py-3.5 rounded-xl shadow-md hover:shadow-lg active:scale-[0.98] transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed flex justify-center items-center gap-2"
                         >
                             {status.loading ? (
                                 <>

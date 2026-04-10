@@ -147,7 +147,7 @@ export default function CivitasPage() {
           <h1 className="text-3xl font-bold text-slate-800 tracking-tight">Database Civitas</h1>
           <p className="mt-2 text-slate-500 text-sm md:text-base">Kelola data guru, staf administrasi, dan karyawan sekolah secara efisien.</p>
         </div>
-        <button className="flex items-center gap-2 px-5 py-3 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 transition-all shadow-lg shadow-green-600/20 active:scale-95 whitespace-nowrap">
+        <button className="flex items-center gap-2 px-5 py-3 bg-[#1a7a4a] text-white rounded-xl font-bold hover:bg-[#15603b] transition-all shadow-lg shadow-green-600/10 active:scale-95 whitespace-nowrap">
           <Plus className="w-5 h-5" />
           Tambah Civitas
         </button>
@@ -208,8 +208,8 @@ export default function CivitasPage() {
                 onClick={() => setSelectedUnit(unit)}
                 className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap border ${
                   selectedUnit === unit 
-                  ? "bg-green-600 text-white border-green-600 shadow-sm shadow-green-600/20" 
-                  : "bg-white text-slate-500 border-slate-200 hover:bg-slate-50"
+                    ? "bg-[#1a7a4a] text-white border-[#1a7a4a] shadow-sm shadow-green-600/10" 
+                    : "bg-white text-slate-500 border-slate-200 hover:bg-slate-50"
                 }`}
               >
                 {unit === "All" ? "Semua Unit" : unit}
@@ -235,7 +235,7 @@ export default function CivitasPage() {
             <p className="text-slate-500 mt-1 max-w-xs text-center px-4">Kami tidak dapat menemukan data civitas dengan kata kunci atau filter tersebut.</p>
             <button 
               onClick={() => {setSearchQuery(""); setSelectedUnit("All");}}
-              className="mt-6 text-green-600 font-bold hover:underline"
+              className="mt-6 text-[#1a7a4a] font-bold hover:underline"
             >
               Reset semua filter
             </button>
@@ -304,11 +304,11 @@ export default function CivitasPage() {
                 </div>
 
                 <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between group-hover:bg-green-50/30 transition-colors">
-                   <button className="text-xs font-bold text-green-600 flex items-center gap-1.5 hover:underline decoration-2 underline-offset-4">
+                   <button className="text-xs font-bold text-[#1a7a4a] flex items-center gap-1.5 hover:underline decoration-2 underline-offset-4">
                       <ExternalLink className="w-3.5 h-3.5" />
                       Detail Profil
                    </button>
-                   <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-green-500 group-hover:translate-x-1 transition-all" />
+                   <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-[#1a7a4a] group-hover:translate-x-1 transition-all" />
                 </div>
               </div>
             ))}

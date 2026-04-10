@@ -167,7 +167,7 @@ export default function SettingsPage() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px]">
-        <Loader2 className="w-10 h-10 text-green-600 animate-spin mb-4" />
+        <Loader2 className="w-10 h-10 text-[#1a7a4a] animate-spin mb-4" />
         <p className="text-slate-600 font-medium">Memuat pengaturan...</p>
       </div>
     );
@@ -197,7 +197,7 @@ export default function SettingsPage() {
       )}
 
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="h-32 bg-gradient-to-r from-emerald-600 to-green-500"></div>
+        <div className="h-32 bg-gradient-to-r from-[#1a7a4a] to-[#22c55e]"></div>
         
         <div className="px-6 md:px-10 pb-10 relative">
           <div className="relative flex justify-between items-end -mt-12 mb-8">
@@ -220,7 +220,7 @@ export default function SettingsPage() {
                   onClick={() => handleGatewayChange("midtrans")}
                   className={`px-6 py-2 rounded-lg text-sm font-medium transition-all ${
                     (isEditing ? editData.activeGateway : formData.activeGateway) === "midtrans"
-                      ? "bg-white text-green-700 shadow-sm"
+                      ? "bg-white text-[#1a7a4a] shadow-sm"
                       : "text-slate-500 hover:text-slate-700"
                   } ${!isEditing && "cursor-default"}`}
                 >
@@ -232,7 +232,7 @@ export default function SettingsPage() {
                   onClick={() => handleGatewayChange("xendit")}
                   className={`px-6 py-2 rounded-lg text-sm font-medium transition-all ${
                     (isEditing ? editData.activeGateway : formData.activeGateway) === "xendit"
-                      ? "bg-white text-green-700 shadow-sm"
+                      ? "bg-white text-[#1a7a4a] shadow-sm"
                       : "text-slate-500 hover:text-slate-700"
                   } ${!isEditing && "cursor-default"}`}
                 >
@@ -249,7 +249,7 @@ export default function SettingsPage() {
                 <div className="space-y-6">
                   <div className="flex items-center space-x-2 text-slate-800">
                     <div className="p-2 bg-green-50 rounded-lg">
-                       <Globe className="w-5 h-5 text-green-600" />
+                       <Globe className="w-5 h-5 text-[#1a7a4a]" />
                     </div>
                     <h3 className="text-lg font-bold">Kredensial Midtrans</h3>
                   </div>
@@ -263,7 +263,7 @@ export default function SettingsPage() {
                           onClick={() => handleMidtransModeChange("sandbox")}
                           className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all ${
                             (isEditing ? editData.midtransMode : formData.midtransMode) === "sandbox"
-                              ? "bg-white text-green-700 shadow-sm"
+                              ? "bg-white text-[#1a7a4a] shadow-sm"
                               : "text-slate-500 hover:text-slate-700"
                           }`}
                         >
@@ -409,10 +409,10 @@ export default function SettingsPage() {
                     <X className="w-4 h-4" />
                     <span>Batal</span>
                   </button>
-                  <button
+                   <button
                     onClick={handleSaveClick}
                     disabled={saving}
-                    className="flex items-center space-x-2 px-6 py-2.5 border border-transparent rounded-xl text-sm font-semibold text-white bg-green-600 hover:bg-green-700 shadow-sm transition-all disabled:opacity-70 active:scale-95"
+                    className="flex items-center space-x-2 px-6 py-2.5 border border-transparent rounded-xl text-sm font-bold text-white bg-[#1a7a4a] hover:bg-[#15603b] shadow-md transition-all disabled:opacity-70 active:scale-95"
                   >
                     {saving ? (
                       <Loader2 className="w-4 h-4 animate-spin" />

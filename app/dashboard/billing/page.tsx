@@ -25,7 +25,7 @@ export default function BillingPage() {
             </p>
             
             <div className="mt-10 flex gap-3">
-                <div className="h-1.5 w-12 bg-green-600 rounded-full animate-pulse"></div>
+                <div className="h-1.5 w-12 bg-[#1a7a4a] rounded-full animate-pulse"></div>
                 <div className="h-1.5 w-4 bg-slate-200 rounded-full"></div>
                 <div className="h-1.5 w-4 bg-slate-200 rounded-full"></div>
             </div>

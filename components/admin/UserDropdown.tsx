@@ -73,11 +73,11 @@ export function UserDropdown() {
           <div className="p-2">
             <Link
               href="/dashboard/settings"
-              className="flex items-center gap-3 px-3 py-2.5 text-sm font-semibold text-slate-700 rounded-xl hover:bg-slate-50 hover:text-green-700 transition-all group/item"
+              className="flex items-center gap-3 px-3 py-2.5 text-sm font-semibold text-slate-700 rounded-xl hover:bg-green-50 hover:text-[#1a7a4a] transition-all group/item"
               onClick={() => setIsOpen(false)}
             >
               <div className="p-1.5 rounded-lg bg-slate-100 group-hover/item:bg-green-100 transition-colors">
-                <Settings className="w-4 h-4 text-slate-600 group-hover/item:text-green-600" />
+                <Settings className="w-4 h-4 text-slate-600 group-hover/item:text-[#1a7a4a]" />
               </div>
               Settings
             </Link>
