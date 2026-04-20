@@ -15,7 +15,8 @@ export default function BulkInvoicesPage() {
     });
 
     const [studentCount, setStudentCount] = useState<number>(0);
-    const supabase = createClient();
+    const [isSubmitted, setIsSubmitted] = useState(false);
+    const supabase = React.useMemo(() => createClient(), []);
 
     const [status, setStatus] = useState<{
         loading: boolean;
@@ -57,11 +58,22 @@ export default function BulkInvoicesPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Proteksi double-submit
+        if (isSubmitted) return;
+
+        const cleanAmount = formData.amount.replace(/\./g, '');
+
+        // Validasi nominal
+        if (!cleanAmount || Number(cleanAmount) <= 0) {
+            setStatus({ loading: false, error: 'Nominal harus lebih dari Rp 0', success: null });
+            return;
+        }
+
         setStatus({ loading: true, error: null, success: null });
+        setIsSubmitted(true);
 
         try {
-            const cleanAmount = formData.amount.replace(/\./g, '');
-
             let studentQuery = supabase
                 .from('students')
                 .select('id')
@@ -98,6 +110,7 @@ export default function BulkInvoicesPage() {
             });
 
             setFormData(prev => ({ ...prev, amount: '', description: '' }));
+            setIsSubmitted(false);
 
             setTimeout(() => {
                 setStatus(prev => ({ ...prev, success: null }));
@@ -105,6 +118,7 @@ export default function BulkInvoicesPage() {
         } catch (err: any) {
             console.error("Error creating bulk invoices:", err);
             setStatus({ loading: false, error: err.message || 'Gagal membuat tagihan massal', success: null });
+            setIsSubmitted(false);
         }
     };
 
