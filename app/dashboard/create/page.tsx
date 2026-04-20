@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, ChevronDown, XCircle } from "lucide-react";
+import { Search, XCircle } from "lucide-react";
 import { createClient } from '@/lib/supabase/client';
 
 interface Student {
@@ -17,7 +17,6 @@ export default function CreateInvoicePage() {
         description: ''
     });
 
-    // Autocomplete states
     const [students, setStudents] = useState<Student[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -28,48 +27,12 @@ export default function CreateInvoicePage() {
         loading: boolean;
         error: string | null;
         success: string | null;
-    }>({
-        loading: false,
-        error: null,
-        success: null
-    });
+    }>({ loading: false, error: null, success: null });
 
-    const [schoolId, setSchoolId] = useState<string | null>(null);
-
-    // Fetch real students and school_id from Supabase
     useEffect(() => {
-        const fetchData = async () => {
+        const fetchStudents = async () => {
             setIsLoadingStudents(true);
             try {
-                // 1. Get current user
-                const { data: { user }, error: authError } = await supabase.auth.getUser();
-                if (authError || !user) throw new Error("Silakan login kembali.");
-
-                // 2. Get school_id from user profile
-                const { data: profile, error: profileError } = await supabase
-                    .from("users")
-                    .select("school_id")
-                    .eq("id", user.id)
-                    .single();
-
-                if (profileError) throw profileError;
-                
-                let currentSchoolId = profile?.school_id;
-
-                // 3. Fallback: If no school_id, initialize it with user.id
-                if (!currentSchoolId) {
-                    const { error: updateError } = await supabase
-                        .from("users")
-                        .update({ school_id: user.id })
-                        .eq("id", user.id);
-                    
-                    if (updateError) throw updateError;
-                    currentSchoolId = user.id;
-                }
-
-                setSchoolId(currentSchoolId);
-
-                // 4. Fetch students
                 const { data, error } = await supabase
                     .from('students')
                     .select('id, fullname')
@@ -78,39 +41,32 @@ export default function CreateInvoicePage() {
                 if (error) throw error;
                 setStudents(data || []);
             } catch (error: any) {
-                console.error('Error fetching data:', error);
                 setStatus(prev => ({ ...prev, error: 'Gagal memuat data: ' + error.message }));
             } finally {
                 setIsLoadingStudents(false);
             }
         };
 
-        fetchData();
+        fetchStudents();
     }, [supabase]);
 
-    // Filter students based on search
     const filteredStudents = students.filter(student =>
         student.fullname.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    // Close dropdown when clicking outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
                 setIsDropdownOpen(false);
             }
         };
-
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
+        setFormData(prev => ({ ...prev, [name]: value }));
     };
 
     const handleStudentSelect = (student: Student) => {
@@ -122,27 +78,18 @@ export default function CreateInvoicePage() {
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchQuery(e.target.value);
         setIsDropdownOpen(true);
-        // Clear student_id if user types something new (forcing them to select)
         if (formData.student_id) {
             setFormData(prev => ({ ...prev, student_id: '' }));
         }
     };
 
     const formatAmount = (value: string) => {
-        // Remove non-digit characters
         const number = value.replace(/\D/g, '');
-        // Format with dots
         return number.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     };
 
     const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const rawValue = e.target.value;
-        const formattedValue = formatAmount(rawValue);
-
-        setFormData(prev => ({
-            ...prev,
-            amount: formattedValue
-        }));
+        setFormData(prev => ({ ...prev, amount: formatAmount(e.target.value) }));
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -156,18 +103,13 @@ export default function CreateInvoicePage() {
         setStatus({ loading: true, error: null, success: null });
 
         try {
-            if (!schoolId) throw new Error("Gagal mengidentifikasi sekolah. Silakan muat ulang halaman.");
-
-            // Remove dots for API submission
             const cleanAmount = formData.amount.replace(/\./g, '');
-            
-            // Insert into Supabase
+
             const { error } = await supabase.from('invoices').insert({
                 student_id: formData.student_id,
                 amount: Number(cleanAmount),
                 description: formData.description,
                 status: 'UNPAID',
-                school_id: schoolId, // Multi-tenant support
                 created_at: new Date().toISOString()
             });
 
@@ -176,8 +118,7 @@ export default function CreateInvoicePage() {
             setStatus({ loading: false, error: null, success: 'Tagihan berhasil dibuat!' });
             setFormData({ student_id: '', amount: '', description: '' });
             setSearchQuery('');
-            
-            // Hide success message after 3 seconds
+
             setTimeout(() => {
                 setStatus(prev => ({ ...prev, success: null }));
             }, 3000);
@@ -214,7 +155,6 @@ export default function CreateInvoicePage() {
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Autocomplete Student Field */}
                         <div className="space-y-2 relative" ref={dropdownRef}>
                             <label htmlFor="student_search" className="block text-sm font-medium text-slate-700">
                                 Nama Siswa
@@ -251,15 +191,8 @@ export default function CreateInvoicePage() {
                                 </div>
                             </div>
 
-                            {/* Hidden Input for actual ID */}
-                            <input
-                                type="hidden"
-                                name="student_id"
-                                value={formData.student_id}
-                                required
-                            />
+                            <input type="hidden" name="student_id" value={formData.student_id} required />
 
-                            {/* Dropdown List */}
                             {isDropdownOpen && (
                                 <div className="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl max-h-60 overflow-y-auto">
                                     {filteredStudents.length > 0 ? (
@@ -271,7 +204,7 @@ export default function CreateInvoicePage() {
                                                     className="px-4 py-3 hover:bg-slate-50 cursor-pointer text-slate-700 transition-colors duration-150 flex items-center justify-between group"
                                                 >
                                                     <span className="font-medium">{student.fullname}</span>
-                                                    {formData.student_id === student.id.toString() && (
+                                                    {formData.student_id === student.id && (
                                                         <span className="text-green-600 text-sm font-semibold">Dipilih</span>
                                                     )}
                                                 </li>

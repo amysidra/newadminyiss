@@ -5,21 +5,26 @@ import { Settings, LogOut } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useProfile } from "@/lib/context/ProfileContext";
+
+const ROLE_COLORS: Record<string, string> = {
+  admin: "bg-green-100 text-green-700",
+  guru: "bg-blue-100 text-blue-700",
+  tendik: "bg-amber-100 text-amber-700",
+  walimurid: "bg-slate-100 text-slate-600",
+};
 
 export function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
-  const [user, setUser] = useState<any>(null);
+  const [authUser, setAuthUser] = useState<any>(null);
   const [imageError, setImageError] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
   const router = useRouter();
+  const { profile, roleLabel } = useProfile();
 
   useEffect(() => {
-    async function getUser() {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-    }
-    getUser();
+    supabase.auth.getUser().then(({ data: { user } }) => setAuthUser(user));
 
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -28,16 +33,23 @@ export function UserDropdown() {
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [supabase.auth]);
+  }, []);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
     router.push("/");
   };
 
-  const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Admin";
-  const displayEmail = user?.email || "admin@yiss.id";
-  const avatarUrl = user?.user_metadata?.avatar_url || user?.user_metadata?.picture;
+  const displayName =
+    profile?.first_name
+      ? `${profile.first_name}${profile.last_name ? " " + profile.last_name : ""}`
+      : authUser?.user_metadata?.full_name
+      ?? authUser?.email?.split("@")[0]
+      ?? "Admin";
+
+  const displayEmail = profile?.email ?? authUser?.email ?? "admin@yiss.id";
+  const avatarUrl = authUser?.user_metadata?.avatar_url ?? authUser?.user_metadata?.picture;
+  const roleColor = ROLE_COLORS[profile?.role ?? ""] ?? ROLE_COLORS.walimurid;
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -62,14 +74,23 @@ export function UserDropdown() {
         </div>
         <div className="hidden md:flex flex-col items-start text-left mr-1">
           <span className="text-sm font-bold text-slate-800 leading-none">{displayName}</span>
-          <span className="text-[11px] text-slate-500 mt-1 font-medium truncate max-w-[120px]">
-            {displayEmail}
+          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md mt-1 ${roleColor}`}>
+            {roleLabel}
           </span>
         </div>
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-56 bg-white border border-slate-200 rounded-2xl shadow-2xl z-50 overflow-hidden">
+        <div className="absolute right-0 mt-2 w-64 bg-white border border-slate-200 rounded-2xl shadow-2xl z-50 overflow-hidden">
+          {/* Profile header */}
+          <div className="px-4 py-3 border-b border-slate-100">
+            <p className="text-sm font-bold text-slate-800 truncate">{displayName}</p>
+            <p className="text-xs text-slate-500 truncate mt-0.5">{displayEmail}</p>
+            <span className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-md mt-1.5 ${roleColor}`}>
+              {roleLabel}
+            </span>
+          </div>
+
           <div className="p-2">
             <Link
               href="/dashboard/settings"

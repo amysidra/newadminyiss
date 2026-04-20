@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import React, { useState, useEffect } from 'react';
 import { Users, Loader2, Calendar } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -9,10 +11,9 @@ export default function BulkInvoicesPage() {
         amount: '',
         description: '',
         unit: '',
-        due_date: new Date(new Date().setMonth(new Date().getMonth() + 1)).toISOString().split('T')[0] // Default to 1 month from now
+        due_date: new Date(new Date().setMonth(new Date().getMonth() + 1)).toISOString().split('T')[0]
     });
 
-    const [schoolId, setSchoolId] = useState<string | null>(null);
     const [studentCount, setStudentCount] = useState<number>(0);
     const supabase = createClient();
 
@@ -20,90 +21,52 @@ export default function BulkInvoicesPage() {
         loading: boolean;
         error: string | null;
         success: string | null;
-    }>({
-        loading: false,
-        error: null,
-        success: null
-    });
+    }>({ loading: false, error: null, success: null });
 
     const formatAmount = (value: string) => {
-        // Remove non-digit characters
         const number = value.replace(/\D/g, '');
-        // Format with dots
         return number.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     };
 
     const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const rawValue = e.target.value;
-        const formattedValue = formatAmount(rawValue);
-
-        setFormData(prev => ({
-            ...prev,
-            amount: formattedValue
-        }));
+        setFormData(prev => ({ ...prev, amount: formatAmount(e.target.value) }));
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
+        setFormData(prev => ({ ...prev, [name]: value }));
     };
 
     useEffect(() => {
-        const fetchContext = async () => {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) return;
+        const fetchStudentCount = async () => {
+            let query = supabase
+                .from('students')
+                .select('id', { count: 'exact', head: true })
+                .eq('status', 'Aktif');
 
-            const { data: profile } = await supabase
-                .from('users')
-                .select('school_id')
-                .eq('id', user.id)
-                .single();
-            
-            if (profile?.school_id) {
-                setSchoolId(profile.school_id);
-                
-                // Fetch student count for the selected unit
-                let query = supabase
-                    .from('students')
-                    .select('id', { count: 'exact', head: true })
-                    .eq('school_id', profile.school_id)
-                    .eq('status', 'Aktif');
-                
-                if (formData.unit) {
-                    query = query.eq('unit', formData.unit);
-                }
-
-                const { count } = await query;
-                setStudentCount(count || 0);
+            if (formData.unit) {
+                query = query.eq('unit', formData.unit);
             }
+
+            const { count } = await query;
+            setStudentCount(count || 0);
         };
 
-        fetchContext();
+        fetchStudentCount();
     }, [formData.unit]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
-        if (!schoolId) {
-            setStatus({ loading: false, error: 'School ID tidak ditemukan. Harap login kembali.', success: null });
-            return;
-        }
-
         setStatus({ loading: true, error: null, success: null });
 
         try {
             const cleanAmount = formData.amount.replace(/\./g, '');
 
-            // 1. Fetch all active students for this unit
             let studentQuery = supabase
                 .from('students')
                 .select('id')
-                .eq('school_id', schoolId)
                 .eq('status', 'Aktif');
-            
+
             if (formData.unit) {
                 studentQuery = studentQuery.eq('unit', formData.unit);
             }
@@ -115,9 +78,7 @@ export default function BulkInvoicesPage() {
                 throw new Error('Tidak ada siswa aktif yang ditemukan untuk kriteria ini.');
             }
 
-            // 2. Prepare invoices data
             const invoices = students.map(student => ({
-                school_id: schoolId,
                 student_id: student.id,
                 amount: Number(cleanAmount),
                 description: formData.description,
@@ -126,21 +87,18 @@ export default function BulkInvoicesPage() {
                 created_at: new Date().toISOString()
             }));
 
-            // 3. Batch insert invoices
-            const { error: insertError } = await supabase
-                .from('invoices')
-                .insert(invoices);
+            const { error: insertError } = await supabase.from('invoices').insert(invoices);
 
             if (insertError) throw insertError;
 
-            setStatus({ 
-                loading: false, 
-                error: null, 
-                success: `Berhasil membuat ${students.length} tagihan untuk ${formData.unit ? 'unit ' + formData.unit : 'semua unit'}!` 
+            setStatus({
+                loading: false,
+                error: null,
+                success: `Berhasil membuat ${students.length} tagihan untuk ${formData.unit ? 'unit ' + formData.unit : 'semua unit'}!`
             });
-            
+
             setFormData(prev => ({ ...prev, amount: '', description: '' }));
-            
+
             setTimeout(() => {
                 setStatus(prev => ({ ...prev, success: null }));
             }, 5000);

@@ -25,7 +25,10 @@ import { createClient } from "@/lib/supabase/client";
 
 interface Guardian {
   id: string;
-  fullname: string;
+  users: {
+    first_name: string;
+    last_name: string;
+  };
 }
 
 interface Student {
@@ -50,7 +53,6 @@ export default function StudentsPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [guardians, setGuardians] = useState<Guardian[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [schoolId, setSchoolId] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [newStudent, setNewStudent] = useState<Partial<Student>>({
     status: "Aktif",
@@ -66,45 +68,30 @@ export default function StudentsPage() {
     const initData = async () => {
       try {
         setLoading(true);
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
+        const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
           setLoading(false);
           return;
         }
 
-        const { data: profile } = await supabase
-          .from("users")
-          .select("school_id")
-          .eq("id", user.id)
-          .single();
+        setUserId(user.id);
 
-        if (profile?.school_id) {
-          setSchoolId(profile.school_id);
-          setUserId(user.id);
+        const [studentsRes, guardiansRes] = await Promise.all([
+          supabase
+            .from("students")
+            .select("*")
+            .order("fullname", { ascending: true }),
+          supabase
+            .from("guardians")
+            .select("id, users!user_id ( first_name, last_name )")
+            .order("created_at", { ascending: true }),
+        ]);
 
-          const [studentsRes, guardiansRes] = await Promise.all([
-            supabase
-              .from("students")
-              .select("*")
-              .eq("school_id", profile.school_id)
-              .order("fullname", { ascending: true }),
-            supabase
-              .from("guardians")
-              .select("id, fullname")
-              .eq("school_id", profile.school_id)
-              .order("fullname", { ascending: true }),
-          ]);
+        if (studentsRes.error) throw studentsRes.error;
+        if (guardiansRes.error) throw guardiansRes.error;
 
-          if (studentsRes.error) throw studentsRes.error;
-          if (guardiansRes.error) throw guardiansRes.error;
-
-          setStudents(studentsRes.data || []);
-          setGuardians(guardiansRes.data || []);
-        } else {
-          setLoading(false);
-        }
+        setStudents(studentsRes.data || []);
+        setGuardians(guardiansRes.data || []);
       } catch (err: any) {
         console.error("Error fetching data:", err);
         setError(err.message || "Gagal memuat data.");
@@ -118,29 +105,21 @@ export default function StudentsPage() {
 
   const handleAddStudent = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!schoolId) {
-      alert("school_id tidak ditemukan, tidak dapat menyimpan data.");
-      return;
-    }
-
     try {
       setIsSubmitting(true);
 
       const { data, error } = await supabase
         .from("students")
-        .insert([
-          {
-            nisn: newStudent.nisn,
-            fullname: newStudent.fullname,
-            grade: newStudent.grade,
-            unit: newStudent.unit,
-            status: newStudent.status,
-            gender: newStudent.gender,
-            guardian_id: newStudent.guardian_id || null,
-            school_id: schoolId,
-            user_id: userId,
-          },
-        ])
+        .insert([{
+          nisn: newStudent.nisn,
+          fullname: newStudent.fullname,
+          grade: newStudent.grade,
+          unit: newStudent.unit,
+          status: newStudent.status,
+          gender: newStudent.gender,
+          guardian_id: newStudent.guardian_id || null,
+          user_id: userId,
+        }])
         .select();
 
       if (error) throw error;
@@ -175,26 +154,21 @@ export default function StudentsPage() {
         s.fullname.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (s.nisn && s.nisn.includes(searchQuery)) ||
         (s.grade && s.grade.toLowerCase().includes(searchQuery.toLowerCase()));
-
       const matchesUnit = selectedUnit === "All" || s.unit === selectedUnit;
-
       return matchesSearch && matchesUnit;
     });
   }, [searchQuery, selectedUnit, students]);
 
-  const stats = useMemo(() => {
-    return {
-      total: students.length,
-      tk: students.filter((s) => s.unit === "TK").length,
-      sd: students.filter((s) => s.unit === "SD").length,
-      smp: students.filter((s) => s.unit === "SMP").length,
-      sma: students.filter((s) => s.unit === "SMA").length,
-    };
-  }, [students]);
+  const stats = useMemo(() => ({
+    total: students.length,
+    tk: students.filter((s) => s.unit === "TK").length,
+    sd: students.filter((s) => s.unit === "SD").length,
+    smp: students.filter((s) => s.unit === "SMP").length,
+    sma: students.filter((s) => s.unit === "SMA").length,
+  }), [students]);
 
   return (
     <div className="max-w-6xl mx-auto pb-20">
-      {/* Header */}
       <header className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-800 tracking-tight">Database Murid</h1>
@@ -220,50 +194,24 @@ export default function StudentsPage() {
         </div>
       </header>
 
-      {/* Stats Quick View */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm transition-all hover:shadow-md group">
-          <div className="h-10 w-10 rounded-xl bg-green-50 flex items-center justify-center text-green-600 mb-3 group-hover:bg-green-600 group-hover:text-white transition-colors">
-            <GraduationCap className="w-5 h-5" />
+        {[
+          { label: "Total Murid", value: stats.total, icon: GraduationCap, color: "green" },
+          { label: "Unit TK", value: stats.tk, icon: Heart, color: "rose" },
+          { label: "Unit SD", value: stats.sd, icon: Building, color: "amber" },
+          { label: "Unit SMP", value: stats.smp, icon: ShieldCheck, color: "blue" },
+          { label: "Unit SMA", value: stats.sma, icon: BookOpen, color: "indigo" },
+        ].map(({ label, value, icon: Icon, color }) => (
+          <div key={label} className={`bg-white p-5 rounded-2xl border border-slate-200 shadow-sm transition-all hover:shadow-md group`}>
+            <div className={`h-10 w-10 rounded-xl bg-${color}-50 flex items-center justify-center text-${color}-600 mb-3 group-hover:bg-${color}-600 group-hover:text-white transition-colors`}>
+              <Icon className="w-5 h-5" />
+            </div>
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{label}</p>
+            <p className="text-2xl font-bold text-slate-900 mt-1">{value}</p>
           </div>
-          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Murid</p>
-          <p className="text-2xl font-bold text-slate-900 mt-1">{stats.total}</p>
-        </div>
-
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm transition-all hover:shadow-md group">
-          <div className="h-10 w-10 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600 mb-3 group-hover:bg-rose-600 group-hover:text-white transition-colors">
-            <Heart className="w-5 h-5" />
-          </div>
-          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Unit TK</p>
-          <p className="text-2xl font-bold text-slate-900 mt-1">{stats.tk}</p>
-        </div>
-
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm transition-all hover:shadow-md group">
-          <div className="h-10 w-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600 mb-3 group-hover:bg-amber-600 group-hover:text-white transition-colors">
-            <Building className="w-5 h-5" />
-          </div>
-          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Unit SD</p>
-          <p className="text-2xl font-bold text-slate-900 mt-1">{stats.sd}</p>
-        </div>
-
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm transition-all hover:shadow-md group">
-          <div className="h-10 w-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 mb-3 group-hover:bg-blue-600 group-hover:text-white transition-colors">
-            <ShieldCheck className="w-5 h-5" />
-          </div>
-          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Unit SMP</p>
-          <p className="text-2xl font-bold text-slate-900 mt-1">{stats.smp}</p>
-        </div>
-
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm transition-all hover:shadow-md group">
-          <div className="h-10 w-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 mb-3 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-            <BookOpen className="w-5 h-5" />
-          </div>
-          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Unit SMA</p>
-          <p className="text-2xl font-bold text-slate-900 mt-1">{stats.sma}</p>
-        </div>
+        ))}
       </div>
 
-      {/* Control Bar */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 md:p-6 mb-8">
         <div className="flex flex-col lg:flex-row gap-4">
           <div className="relative group flex-1">
@@ -299,7 +247,6 @@ export default function StudentsPage() {
         </div>
       </div>
 
-      {/* Student Grid */}
       <div className="space-y-4">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border border-slate-200">
@@ -328,10 +275,7 @@ export default function StudentsPage() {
               Kami tidak dapat menemukan data murid dengan kata kunci atau filter tersebut.
             </p>
             <button
-              onClick={() => {
-                setSearchQuery("");
-                setSelectedUnit("All");
-              }}
+              onClick={() => { setSearchQuery(""); setSelectedUnit("All"); }}
               className="mt-6 text-green-600 font-bold hover:underline"
             >
               Reset semua filter
@@ -347,26 +291,16 @@ export default function StudentsPage() {
                 <div className="p-6">
                   <div className="flex items-start justify-between mb-5">
                     <div className="relative">
-                      <div
-                        className={`h-16 w-16 rounded-2xl flex items-center justify-center text-2xl font-bold transition-all group-hover:scale-105 ${
-                          student.gender === "Laki-laki"
-                            ? "bg-blue-50 text-blue-600"
-                            : "bg-rose-50 text-rose-600"
-                        }`}
-                      >
+                      <div className={`h-16 w-16 rounded-2xl flex items-center justify-center text-2xl font-bold transition-all group-hover:scale-105 ${
+                        student.gender === "Laki-laki" ? "bg-blue-50 text-blue-600" : "bg-rose-50 text-rose-600"
+                      }`}>
                         {student.fullname.charAt(0)}
                       </div>
-                      <div
-                        className={`absolute -bottom-1 -right-1 h-6 w-6 rounded-lg border-2 border-white flex items-center justify-center shadow-sm ${
-                          student.unit === "TK"
-                            ? "bg-rose-400"
-                            : student.unit === "SD"
-                            ? "bg-amber-400"
-                            : student.unit === "SMP"
-                            ? "bg-blue-500"
-                            : "bg-indigo-600"
-                        }`}
-                      >
+                      <div className={`absolute -bottom-1 -right-1 h-6 w-6 rounded-lg border-2 border-white flex items-center justify-center shadow-sm ${
+                        student.unit === "TK" ? "bg-rose-400" :
+                        student.unit === "SD" ? "bg-amber-400" :
+                        student.unit === "SMP" ? "bg-blue-500" : "bg-indigo-600"
+                      }`}>
                         <span className="text-[10px] font-black text-white">{student.unit}</span>
                       </div>
                     </div>
@@ -384,15 +318,11 @@ export default function StudentsPage() {
                         NISN: {student.nisn || "-"}
                       </span>
                       <span className="h-1 w-1 rounded-full bg-slate-300"></span>
-                      <span
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                          student.status === "Aktif"
-                            ? "bg-green-100 text-green-700"
-                            : student.status === "Lulus"
-                            ? "bg-blue-100 text-blue-700"
-                            : "bg-slate-100 text-slate-700"
-                        }`}
-                      >
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                        student.status === "Aktif" ? "bg-green-100 text-green-700" :
+                        student.status === "Lulus" ? "bg-blue-100 text-blue-700" :
+                        "bg-slate-100 text-slate-700"
+                      }`}>
                         {student.status}
                       </span>
                     </div>
@@ -412,11 +342,7 @@ export default function StudentsPage() {
                         Jenis Kelamin
                       </div>
                       <p className="text-sm font-bold text-slate-700">
-                        {student.gender === "Laki-laki"
-                          ? "L"
-                          : student.gender === "Perempuan"
-                          ? "P"
-                          : "-"}
+                        {student.gender === "Laki-laki" ? "L" : student.gender === "Perempuan" ? "P" : "-"}
                       </p>
                     </div>
                   </div>
@@ -435,7 +361,6 @@ export default function StudentsPage() {
         )}
       </div>
 
-      {/* Add Student Modal */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
           <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
@@ -481,14 +406,12 @@ export default function StudentsPage() {
                     <select
                       className="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:border-green-500 focus:ring-4 focus:ring-green-500/10 transition-all"
                       value={newStudent.guardian_id}
-                      onChange={(e) =>
-                        setNewStudent({ ...newStudent, guardian_id: e.target.value })
-                      }
+                      onChange={(e) => setNewStudent({ ...newStudent, guardian_id: e.target.value })}
                     >
                       <option value="">-- Tidak ada --</option>
                       {guardians.map((g) => (
                         <option key={g.id} value={g.id}>
-                          {g.fullname}
+                          {`${g.users?.first_name ?? ""} ${g.users?.last_name ?? ""}`.trim()}
                         </option>
                       ))}
                     </select>
@@ -511,9 +434,7 @@ export default function StudentsPage() {
                     <select
                       className="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:border-green-500 focus:ring-4 focus:ring-green-500/10 transition-all"
                       value={newStudent.unit}
-                      onChange={(e) =>
-                        setNewStudent({ ...newStudent, unit: e.target.value as any })
-                      }
+                      onChange={(e) => setNewStudent({ ...newStudent, unit: e.target.value as any })}
                     >
                       <option value="TK">TK</option>
                       <option value="SD">SD</option>
@@ -527,9 +448,7 @@ export default function StudentsPage() {
                     <select
                       className="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:border-green-500 focus:ring-4 focus:ring-green-500/10 transition-all"
                       value={newStudent.gender}
-                      onChange={(e) =>
-                        setNewStudent({ ...newStudent, gender: e.target.value as any })
-                      }
+                      onChange={(e) => setNewStudent({ ...newStudent, gender: e.target.value as any })}
                     >
                       <option value="Laki-laki">Laki-laki</option>
                       <option value="Perempuan">Perempuan</option>
@@ -541,9 +460,7 @@ export default function StudentsPage() {
                     <select
                       className="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:border-green-500 focus:ring-4 focus:ring-green-500/10 transition-all"
                       value={newStudent.status}
-                      onChange={(e) =>
-                        setNewStudent({ ...newStudent, status: e.target.value as any })
-                      }
+                      onChange={(e) => setNewStudent({ ...newStudent, status: e.target.value as any })}
                     >
                       <option value="Aktif">Aktif</option>
                       <option value="Lulus">Lulus</option>

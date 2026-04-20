@@ -1,12 +1,12 @@
 "use client";
 
 import React, { useEffect, useState, useMemo } from "react";
-import { 
-  Search, 
-  CheckCircle2, 
-  Clock, 
-  AlertCircle, 
-  Filter, 
+import {
+  Search,
+  CheckCircle2,
+  Clock,
+  AlertCircle,
+  Filter,
   CreditCard,
   Receipt,
   GraduationCap,
@@ -29,10 +29,6 @@ interface Student {
   fullname: string;
   unit: string;
   grade: string;
-  walimurid_profile?: {
-    fullname: string;
-    phone: string;
-  };
 }
 
 interface Invoice {
@@ -47,6 +43,9 @@ interface Invoice {
 
 type TabType = "all" | "unpaid" | "pending" | "succeed" | "failed";
 
+const MIDTRANS_CLIENT_KEY = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY ?? "";
+const MIDTRANS_MODE = (process.env.NEXT_PUBLIC_MIDTRANS_MODE ?? "sandbox") as "sandbox" | "production";
+
 export default function InvoicesListPage() {
   const supabase = createClient();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -54,48 +53,32 @@ export default function InvoicesListPage() {
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>("unpaid");
   const [searchQuery, setSearchQuery] = useState("");
-  const [schoolId, setSchoolId] = useState<string | null>(null);
-  const [paymentSettings, setPaymentSettings] = useState<{
-    clientKey: string;
-    mode: "sandbox" | "production";
-  } | null>(null);
 
-  // Modal states
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [invoiceToMark, setInvoiceToMark] = useState<Invoice | null>(null);
 
-  // Load Midtrans Snap JS dynamically based on school's settings
+  // Load Midtrans Snap JS from env config
   useEffect(() => {
-    if (!paymentSettings?.clientKey) return;
+    if (!MIDTRANS_CLIENT_KEY) return;
 
     const scriptId = "midtrans-script";
-    const existingScript = document.getElementById(scriptId);
-    if (existingScript) {
-        if (existingScript.getAttribute("data-client-key") === paymentSettings.clientKey) {
-            return;
-        }
-        existingScript.remove();
-    }
+    if (document.getElementById(scriptId)) return;
 
     const script = document.createElement("script");
     script.id = scriptId;
-    script.src = paymentSettings.mode === "production"
+    script.src = MIDTRANS_MODE === "production"
       ? "https://app.midtrans.com/snap/snap.js"
       : "https://app.sandbox.midtrans.com/snap/snap.js";
-    script.setAttribute("data-client-key", paymentSettings.clientKey);
+    script.setAttribute("data-client-key", MIDTRANS_CLIENT_KEY);
     document.body.appendChild(script);
-  }, [paymentSettings]);
+  }, []);
 
-  const fetchInvoices = async (sId: string) => {
+  const fetchInvoices = async () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
         .from("invoices")
-        .select(`
-          *,
-          students (*)
-        `)
-        .eq("school_id", sId)
+        .select(`*, students (*)`)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -112,7 +95,6 @@ export default function InvoicesListPage() {
           fullname: inv.students.fullname,
           unit: inv.students.unit,
           grade: inv.students.grade,
-          walimurid_profile: inv.students.walimurid_profile
         }
       }));
 
@@ -126,58 +108,8 @@ export default function InvoicesListPage() {
   };
 
   useEffect(() => {
-    const init = async () => {
-      try {
-        const { data: { user }, error: authError } = await supabase.auth.getUser();
-        if (authError || !user) return;
-
-        const { data: profile, error: profileError } = await supabase
-          .from("users")
-          .select("school_id")
-          .eq("id", user.id)
-          .single();
-
-        if (profileError) throw profileError;
-        
-        let currentSchoolId = profile?.school_id;
-
-        if (!currentSchoolId) {
-          const { error: updateError } = await supabase
-            .from("users")
-            .update({ school_id: user.id })
-            .eq("id", user.id);
-          
-          if (updateError) throw updateError;
-          currentSchoolId = user.id;
-        }
-
-        if (currentSchoolId) {
-          setSchoolId(currentSchoolId);
-          fetchInvoices(currentSchoolId);
-
-          const { data: paySettings } = await supabase
-            .from("payment_settings")
-            .select("midtrans_client_key, midtrans_mode")
-            .eq("school_id", currentSchoolId)
-            .single();
-          
-          if (paySettings?.midtrans_client_key) {
-            setPaymentSettings({
-              clientKey: paySettings.midtrans_client_key,
-              mode: paySettings.midtrans_mode as "sandbox" | "production" || "sandbox"
-            });
-          }
-        } else {
-          setLoading(false);
-        }
-      } catch (err) {
-        console.error("Init error:", err);
-        setLoading(false);
-      }
-    };
-
-    init();
-  }, [supabase]);
+    fetchInvoices();
+  }, []);
 
   const handlePayOnline = async (invoiceId: string) => {
     try {
@@ -195,21 +127,15 @@ export default function InvoicesListPage() {
         throw new Error(data.message || "Gagal mendapatkan token pembayaran");
       }
 
-      const { token } = data;
-
       if (window.snap) {
-        window.snap.pay(token, {
-          onSuccess: (result: any) => {
-            console.log("Payment Success:", result);
+        window.snap.pay(data.token, {
+          onSuccess: () => {
             setActiveTab("succeed");
-            if (schoolId) {
-              setTimeout(() => fetchInvoices(schoolId), 1500);
-            }
+            setTimeout(() => fetchInvoices(), 1500);
           },
-          onPending: (result: any) => {
-            console.log("Payment Pending:", result);
+          onPending: () => {
             setActiveTab("pending");
-            if (schoolId) fetchInvoices(schoolId);
+            fetchInvoices();
           },
           onError: (result: any) => {
             console.error("Payment Error:", result);
@@ -221,7 +147,6 @@ export default function InvoicesListPage() {
       } else {
         throw new Error("Midtrans script not loaded yet. Please refresh.");
       }
-
     } catch (err: any) {
       console.error("Error making online payment:", err);
       alert("Kesalahan: " + err.message);
@@ -244,15 +169,12 @@ export default function InvoicesListPage() {
     try {
       const { error } = await supabase
         .from("invoices")
-        .update({ 
-          status: "PAID",
-          payment_method: "cash" 
-        })
+        .update({ status: "PAID", payment_method: "cash" })
         .eq("id", invoiceToMark.id);
 
       if (error) throw error;
 
-      if (schoolId) await fetchInvoices(schoolId);
+      await fetchInvoices();
       setInvoiceToMark(null);
     } catch (err: any) {
       console.error("Error updating invoice:", err);
@@ -280,8 +202,7 @@ export default function InvoicesListPage() {
       const q = searchQuery.toLowerCase();
       filtered = filtered.filter((inv) =>
         inv.description.toLowerCase().includes(q) ||
-        inv.student.fullname.toLowerCase().includes(q) ||
-        inv.student.walimurid_profile?.fullname.toLowerCase().includes(q)
+        inv.student.fullname.toLowerCase().includes(q)
       );
     }
 
@@ -308,13 +229,11 @@ export default function InvoicesListPage() {
 
   return (
     <div className="max-w-5xl mx-auto pb-20">
-      {/* Header */}
       <header className="mb-8">
         <h1 className="text-3xl font-bold text-slate-800 tracking-tight">Daftar Invoice</h1>
         <p className="mt-2 text-slate-500">Kelola dan pantau status pembayaran seluruh tagihan sekolah.</p>
       </header>
 
-      {/* Stats Section */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
         <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex items-center gap-5 transition-all hover:shadow-md">
           <div className="h-14 w-14 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600">
@@ -338,15 +257,13 @@ export default function InvoicesListPage() {
             <p className="text-2xl font-bold text-[#1a7a4a] mt-1">Rp {stats.paid.toLocaleString("id-ID")}</p>
           </div>
           <div className="ml-auto text-[#1a7a4a] opacity-20">
-             <Banknote className="w-12 h-12" />
+            <Banknote className="w-12 h-12" />
           </div>
         </div>
       </div>
 
-      {/* Filter and Search Bar */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-8">
         <div className="p-4 md:p-6 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          {/* Tabs */}
           <div className="flex items-center gap-1 p-1 bg-slate-50 rounded-xl w-fit overflow-x-auto">
             {tabs.map((tab) => (
               <button
@@ -368,7 +285,6 @@ export default function InvoicesListPage() {
             ))}
           </div>
 
-          {/* Search */}
           <div className="relative group w-full md:max-w-xs">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 transition-colors group-focus-within:text-[#1a7a4a]" />
             <input
@@ -382,12 +298,16 @@ export default function InvoicesListPage() {
         </div>
       </div>
 
-      {/* Invoice List */}
       <div className="space-y-4">
-        {filteredInvoices.length === 0 ? (
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-slate-200">
+            <Loader2 className="w-8 h-8 text-[#1a7a4a] animate-spin mb-4" />
+            <p className="text-slate-500">Memuat data invoice...</p>
+          </div>
+        ) : filteredInvoices.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border-2 border-dashed border-slate-200">
             <div className="h-16 w-16 rounded-full bg-slate-50 flex items-center justify-center text-slate-300 mb-4">
-               <Filter className="w-8 h-8" />
+              <Filter className="w-8 h-8" />
             </div>
             <h3 className="text-lg font-semibold text-slate-800">Tidak ada data ditemukan</h3>
             <p className="text-slate-500 mt-1 text-center max-w-xs">
@@ -396,7 +316,7 @@ export default function InvoicesListPage() {
           </div>
         ) : (
           filteredInvoices.map((inv) => (
-            <div 
+            <div
               key={inv.id}
               className="bg-white rounded-2xl border border-slate-200 p-5 md:p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 transition-all hover:border-green-300 hover:shadow-lg group"
             >
@@ -409,7 +329,7 @@ export default function InvoicesListPage() {
                 }`}>
                   <Receipt className="w-6 h-6" />
                 </div>
-                
+
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 mb-1 flex-wrap">
                     <h3 className="font-bold text-slate-800 group-hover:text-[#1a7a4a] transition-colors truncate">{inv.description}</h3>
@@ -422,7 +342,7 @@ export default function InvoicesListPage() {
                       {inv.status}
                     </span>
                   </div>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1 text-sm">
                     <div className="flex items-center gap-1.5 text-slate-500 truncate">
                       <GraduationCap className="w-3.5 h-3.5" />
@@ -439,13 +359,11 @@ export default function InvoicesListPage() {
               </div>
 
               <div className="flex flex-col md:items-end justify-between gap-4">
-                <div className="text-right">
-                   <p className="text-2xl font-black text-slate-900 leading-none">Rp {inv.amount.toLocaleString("id-ID")}</p>
-                </div>
-                
+                <p className="text-2xl font-black text-slate-900 leading-none">Rp {inv.amount.toLocaleString("id-ID")}</p>
+
                 {inv.status !== "PAID" && (
                   <div className="flex items-center gap-2">
-                    <button 
+                    <button
                       onClick={() => handlePayOnline(inv.id)}
                       disabled={loadingId === inv.id}
                       className="px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-black transition-all flex items-center gap-2 disabled:opacity-50"
@@ -453,7 +371,7 @@ export default function InvoicesListPage() {
                       Bayar Online
                       <ChevronRight className="w-3 h-3" />
                     </button>
-                    <button 
+                    <button
                       onClick={() => initiateMarkAsPaidCash(inv)}
                       disabled={loadingId === inv.id}
                       className="px-4 py-2 rounded-xl border border-[#1a7a4a] text-[#1a7a4a] text-xs font-bold hover:bg-green-50 transition-all flex items-center gap-2 disabled:opacity-50"
@@ -468,10 +386,9 @@ export default function InvoicesListPage() {
         )}
       </div>
 
-      {/* Cash Confirmation Modal */}
       {showConfirmModal && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-          <div 
+          <div
             className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
             onClick={() => setShowConfirmModal(false)}
           />
@@ -485,21 +402,21 @@ export default function InvoicesListPage() {
                 Anda akan menandai tagihan <span className="font-bold text-slate-700">"{invoiceToMark?.description}"</span> untuk siswa <span className="font-bold text-slate-700">{invoiceToMark?.student.fullname}</span> sebagai LUNAS.
               </p>
             </div>
-            
+
             <div className="px-8 pb-8 space-y-3">
               <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between">
                 <span className="text-sm text-slate-500">Nominal Lunas</span>
                 <span className="text-lg font-bold text-green-700">Rp {invoiceToMark?.amount.toLocaleString("id-ID")}</span>
               </div>
-              
+
               <div className="flex items-center gap-3 mt-6">
-                <button 
+                <button
                   onClick={() => setShowConfirmModal(false)}
                   className="flex-1 py-3.5 rounded-2xl text-slate-600 font-bold hover:bg-slate-50 transition-all"
                 >
                   Batal
                 </button>
-                <button 
+                <button
                   onClick={handleConfirmMarkAsPaidCash}
                   className="flex-[2] py-3.5 rounded-2xl bg-[#1a7a4a] text-white font-bold shadow-lg shadow-green-600/20 hover:bg-[#15603b] active:scale-95 transition-all"
                 >
@@ -507,8 +424,8 @@ export default function InvoicesListPage() {
                 </button>
               </div>
             </div>
-            
-            <button 
+
+            <button
               onClick={() => setShowConfirmModal(false)}
               className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"
             >

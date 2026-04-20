@@ -26,12 +26,19 @@ interface Student {
 
 interface Guardian {
   id: string;
-  fullname: string;
   phone: string;
   email: string;
   relationship: "Ayah" | "Ibu" | "Wali";
   students: Student[];
-  avatar?: string;
+  users: {
+    first_name: string;
+    last_name: string;
+    email: string;
+  };
+}
+
+function fullName(g: Guardian) {
+  return `${g.users?.first_name ?? ""} ${g.users?.last_name ?? ""}`.trim();
 }
 
 export default function GuardiansPage() {
@@ -41,10 +48,9 @@ export default function GuardiansPage() {
   const [error, setError] = useState<string | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [schoolId, setSchoolId] = useState<string | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
   const [newGuardian, setNewGuardian] = useState({
-    fullname: "",
+    first_name: "",
+    last_name: "",
     phone: "",
     email: "",
     relationship: "Ayah" as "Ayah" | "Ibu" | "Wali",
@@ -52,19 +58,21 @@ export default function GuardiansPage() {
 
   const supabase = createClient();
 
-  const fetchGuardians = async (sId: string) => {
+  const fetchGuardians = async () => {
     try {
       setLoading(true);
       const { data, error: fetchError } = await supabase
         .from("guardians")
-        .select(`*, students (*)`)
-        .eq("school_id", sId)
-        .order("fullname", { ascending: true });
+        .select(`
+          id, phone, email, relationship,
+          users!user_id ( first_name, last_name, email ),
+          students ( fullname, grade, unit )
+        `)
+        .order("created_at", { ascending: false });
 
       if (fetchError) throw fetchError;
-      setGuardians(data || []);
+      setGuardians((data as any) || []);
     } catch (err: any) {
-      console.error("Error fetching guardians:", err);
       setError(err.message || "Gagal memuat data wali murid.");
     } finally {
       setLoading(false);
@@ -72,54 +80,45 @@ export default function GuardiansPage() {
   };
 
   useEffect(() => {
-    const init = async () => {
-      try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (!user) return;
-
-        const { data: profile } = await supabase
-          .from("users")
-          .select("school_id")
-          .eq("id", user.id)
-          .single();
-
-        if (profile?.school_id) {
-          setSchoolId(profile.school_id);
-          setUserId(user.id);
-          fetchGuardians(profile.school_id);
-        } else {
-          setLoading(false);
-        }
-      } catch (err) {
-        console.error("Init error:", err);
-        setLoading(false);
-      }
-    };
-
-    init();
+    fetchGuardians();
   }, []);
 
   const handleSaveGuardian = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!schoolId) return;
+    if (!newGuardian.first_name.trim()) return;
 
     try {
       setIsSaving(true);
-      const { error: insertError } = await supabase.from("guardians").insert([
-        {
-          ...newGuardian,
-          school_id: schoolId,
-          user_id: userId,
-        },
-      ]);
 
-      if (insertError) throw insertError;
+      // 1. Buat profil user baru untuk wali murid
+      const { data: userData, error: userError } = await supabase
+        .from("users")
+        .insert({
+          first_name: newGuardian.first_name.trim(),
+          last_name: newGuardian.last_name.trim(),
+          email: newGuardian.email.trim() || null,
+          phone: newGuardian.phone.trim() || null,
+        })
+        .select("id")
+        .single();
 
-      setNewGuardian({ fullname: "", phone: "", email: "", relationship: "Ayah" });
+      if (userError) throw userError;
+
+      // 2. Buat record guardian yang menunjuk ke user tersebut
+      const { error: guardianError } = await supabase
+        .from("guardians")
+        .insert({
+          user_id: userData.id,
+          phone: newGuardian.phone.trim() || null,
+          email: newGuardian.email.trim() || null,
+          relationship: newGuardian.relationship,
+        });
+
+      if (guardianError) throw guardianError;
+
+      setNewGuardian({ first_name: "", last_name: "", phone: "", email: "", relationship: "Ayah" });
       setShowAddModal(false);
-      await fetchGuardians(schoolId);
+      await fetchGuardians();
     } catch (err: any) {
       alert("Gagal menambah wali murid: " + err.message);
     } finally {
@@ -132,7 +131,7 @@ export default function GuardiansPage() {
     const q = searchQuery.toLowerCase();
     return guardians.filter(
       (g) =>
-        g.fullname.toLowerCase().includes(q) ||
+        fullName(g).toLowerCase().includes(q) ||
         g.email?.toLowerCase().includes(q) ||
         g.phone?.includes(q) ||
         g.students?.some((s) => s.fullname.toLowerCase().includes(q))
@@ -141,7 +140,6 @@ export default function GuardiansPage() {
 
   return (
     <div className="max-w-6xl mx-auto pb-20">
-      {/* Header */}
       <header className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-800 tracking-tight">Database Wali Murid</h1>
@@ -158,7 +156,7 @@ export default function GuardiansPage() {
         </button>
       </header>
 
-      {/* Add Guardian Modal */}
+      {/* Modal Tambah Wali Murid */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
@@ -169,25 +167,58 @@ export default function GuardiansPage() {
             <div className="p-8 pb-4">
               <h2 className="text-2xl font-bold text-slate-800">Tambah Wali Murid Baru</h2>
               <p className="text-slate-500 text-sm mt-1">
-                Masukkan informasi lengkap wali murid untuk pendaftaran.
+                Data akan disimpan ke tabel users dan guardians secara otomatis.
               </p>
             </div>
 
             <form onSubmit={handleSaveGuardian} className="p-8 pt-4 space-y-5">
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">
-                  Nama Lengkap
-                </label>
-                <input
-                  required
-                  type="text"
-                  placeholder="Contoh: Bpk. Andi Santoso"
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-green-500 focus:ring-4 focus:ring-green-500/10 transition-all"
-                  value={newGuardian.fullname}
-                  onChange={(e) => setNewGuardian({ ...newGuardian, fullname: e.target.value })}
-                />
+
+              {/* Nama Depan & Nama Belakang */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">
+                    Nama Depan <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    required
+                    type="text"
+                    placeholder="Contoh: Ahmad"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-green-500 focus:ring-4 focus:ring-green-500/10 transition-all"
+                    value={newGuardian.first_name}
+                    onChange={(e) => setNewGuardian({ ...newGuardian, first_name: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">
+                    Nama Belakang
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Contoh: Santoso"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-green-500 focus:ring-4 focus:ring-green-500/10 transition-all"
+                    value={newGuardian.last_name}
+                    onChange={(e) => setNewGuardian({ ...newGuardian, last_name: e.target.value })}
+                  />
+                </div>
               </div>
 
+              {/* Hubungan */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">
+                  Hubungan dengan Siswa
+                </label>
+                <select
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-green-500 focus:ring-4 focus:ring-green-500/10 transition-all bg-white"
+                  value={newGuardian.relationship}
+                  onChange={(e) => setNewGuardian({ ...newGuardian, relationship: e.target.value as any })}
+                >
+                  <option value="Ayah">Ayah</option>
+                  <option value="Ibu">Ibu</option>
+                  <option value="Wali">Wali / Lainnya</option>
+                </select>
+              </div>
+
+              {/* No HP & Email */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">
@@ -203,34 +234,16 @@ export default function GuardiansPage() {
                 </div>
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">
-                    Hubungan
+                    Email
                   </label>
-                  <select
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-green-500 focus:ring-4 focus:ring-green-500/10 transition-all bg-white"
-                    value={newGuardian.relationship}
-                    onChange={(e) =>
-                      setNewGuardian({ ...newGuardian, relationship: e.target.value as any })
-                    }
-                  >
-                    <option value="Ayah">Ayah</option>
-                    <option value="Ibu">Ibu</option>
-                    <option value="Wali">Wali / Lainnya</option>
-                  </select>
+                  <input
+                    type="email"
+                    placeholder="nama@email.com"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-green-500 focus:ring-4 focus:ring-green-500/10 transition-all"
+                    value={newGuardian.email}
+                    onChange={(e) => setNewGuardian({ ...newGuardian, email: e.target.value })}
+                  />
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">
-                  Email
-                </label>
-                <input
-                  required
-                  type="email"
-                  placeholder="nama@email.com"
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-green-500 focus:ring-4 focus:ring-green-500/10 transition-all"
-                  value={newGuardian.email}
-                  onChange={(e) => setNewGuardian({ ...newGuardian, email: e.target.value })}
-                />
               </div>
 
               <div className="flex items-center gap-3 pt-4">
@@ -357,22 +370,18 @@ export default function GuardiansPage() {
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-4">
                     <div className="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 font-bold text-lg group-hover:bg-green-50 group-hover:text-green-600 transition-colors">
-                      {guardian.fullname.charAt(0)}
+                      {(guardian.users?.first_name ?? "?").charAt(0).toUpperCase()}
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
                         <h3 className="font-bold text-slate-800 group-hover:text-green-700 transition-colors text-sm sm:text-base">
-                          {guardian.fullname}
+                          {fullName(guardian)}
                         </h3>
-                        <span
-                          className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider ${
-                            guardian.relationship === "Ayah"
-                              ? "bg-blue-100 text-blue-700"
-                              : guardian.relationship === "Ibu"
-                              ? "bg-rose-100 text-rose-700"
-                              : "bg-amber-100 text-amber-700"
-                          }`}
-                        >
+                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider ${
+                          guardian.relationship === "Ayah" ? "bg-blue-100 text-blue-700" :
+                          guardian.relationship === "Ibu" ? "bg-rose-100 text-rose-700" :
+                          "bg-amber-100 text-amber-700"
+                        }`}>
                           {guardian.relationship}
                         </span>
                       </div>

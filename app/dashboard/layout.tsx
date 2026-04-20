@@ -18,6 +18,7 @@ import {
   LayoutDashboard,
 } from "lucide-react";
 import { UserDropdown } from "@/components/admin/UserDropdown";
+import { ProfileProvider } from "@/lib/context/ProfileContext";
 
 export default function DashboardLayout({
   children,
@@ -34,6 +35,7 @@ export default function DashboardLayout({
   }
 
   return (
+    <ProfileProvider>
     <div className="flex h-screen bg-[#f4f6f8] font-poppins">
       {/* Mobile sidebar backdrop */}
       {isSidebarOpen && (
@@ -160,5 +162,6 @@ export default function DashboardLayout({
         <main className="flex-1 overflow-y-auto p-4 md:p-8">{children}</main>
       </div>
     </div>
+    </ProfileProvider>
   );
 }
