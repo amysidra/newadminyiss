@@ -4,35 +4,23 @@ import React, { createContext, useContext, useEffect, useState, ReactNode } from
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-export interface UserProfile {
+export interface PortalProfile {
   id: string;
   first_name: string | null;
   last_name: string | null;
   email: string | null;
-  role: "admin" | "walimurid" | "guru" | "tendik";
+  role: string;
+  guardianId: string | null;
 }
 
-const ROLE_LABELS: Record<string, string> = {
-  admin:     "Administrator",
-  walimurid: "Wali Murid",
-  guru:      "Guru",
-  tendik:    "Tenaga Kependidikan",
-};
-
-interface ProfileContextValue {
-  profile: UserProfile | null;
-  roleLabel: string;
-  isAdmin: boolean;
+interface PortalContextValue {
+  profile: PortalProfile | null;
 }
 
-const ProfileContext = createContext<ProfileContextValue>({
-  profile: null,
-  roleLabel: "",
-  isAdmin: false,
-});
+const PortalContext = createContext<PortalContextValue>({ profile: null });
 
-export function ProfileProvider({ children }: { children: ReactNode }) {
-  const [profile, setProfile] = useState<UserProfile | null>(null);
+export function PortalProvider({ children }: { children: ReactNode }) {
+  const [profile, setProfile] = useState<PortalProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const supabase = createClient();
@@ -54,21 +42,23 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
           .maybeSingle();
 
         if (!data) {
-          // Profil tidak ditemukan — callback seharusnya sudah buat/merge profil
           router.replace("/?error=no_profile");
           return;
         }
 
-        // Wali murid tidak boleh masuk area admin
-        if (!["admin", "guru", "tendik"].includes(data.role)) {
-          router.replace("/portal");
+        if (data.role !== "walimurid") {
+          router.replace("/dashboard");
           return;
         }
 
-        setProfile(data as UserProfile);
+        // Gunakan API route (service role) agar self-heal jika user_id masih UUID lama
+        const res = await fetch("/api/portal/guardian")
+        const { guardianId } = res.ok ? await res.json() : { guardianId: null }
+
+        setProfile({ ...data, guardianId: guardianId ?? null });
         setLoading(false);
       } catch (err) {
-        console.error("ProfileContext error:", err);
+        console.error("PortalContext error:", err);
         router.replace("/");
       }
     }
@@ -87,16 +77,13 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     );
   }
 
-  const roleLabel = profile ? (ROLE_LABELS[profile.role] ?? profile.role) : "";
-  const isAdmin = profile?.role === "admin";
-
   return (
-    <ProfileContext.Provider value={{ profile, roleLabel, isAdmin }}>
+    <PortalContext.Provider value={{ profile }}>
       {children}
-    </ProfileContext.Provider>
+    </PortalContext.Provider>
   );
 }
 
-export function useProfile() {
-  return useContext(ProfileContext);
+export function usePortal() {
+  return useContext(PortalContext);
 }

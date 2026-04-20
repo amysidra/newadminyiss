@@ -91,7 +91,7 @@ export default function StudentsPage() {
         if (guardiansRes.error) throw guardiansRes.error;
 
         setStudents(studentsRes.data || []);
-        setGuardians(guardiansRes.data || []);
+        setGuardians((guardiansRes.data || []) as unknown as Guardian[]);
       } catch (err: any) {
         console.error("Error fetching data:", err);
         setError(err.message || "Gagal memuat data.");

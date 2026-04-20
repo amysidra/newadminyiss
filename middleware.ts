@@ -30,14 +30,15 @@ export async function middleware(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
 
   const isDashboard = request.nextUrl.pathname.startsWith('/dashboard')
+  const isPortal    = request.nextUrl.pathname.startsWith('/portal')
   const isLoginPage = request.nextUrl.pathname === '/'
 
-  // Belum login tapi akses dashboard → ke halaman login
-  if (!user && isDashboard) {
+  // Belum login tapi akses area privat → ke halaman login
+  if (!user && (isDashboard || isPortal)) {
     return NextResponse.redirect(new URL('/', request.url))
   }
 
-  // Sudah login tapi buka halaman login → ke dashboard
+  // Sudah login tapi buka halaman login → ke dashboard (ProfileContext handles walimurid → /portal)
   if (user && isLoginPage) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
