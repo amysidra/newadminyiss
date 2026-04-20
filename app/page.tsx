@@ -51,8 +51,8 @@ export default function LoginPage() {
             <span className="hero-accent">Lebih Mudah.</span>
           </h1>
           <p className="hero-desc">
-            Portal administrasi Yayasan Islam Sahabat Sunnah — satu tempat untuk mengelola
-            data donasi, keuangan, dan laporan secara transparan.
+            Portal Pendidikan Yayasan Islam Sahabat Sunnah — satu tempat untuk mengelola
+            semua.
           </p>
         </div>
 

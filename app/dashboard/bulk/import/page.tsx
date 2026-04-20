@@ -15,6 +15,7 @@ import {
 import Link from "next/link";
 import * as XLSX from "xlsx";
 import { createClient } from "@/lib/supabase/client";
+import { MaintenanceModal } from "@/components/admin/MaintenanceModal";
 import GoogleDrivePicker from "@/components/bulk/GoogleDrivePicker";
 
 interface RowData {
@@ -43,6 +44,7 @@ export default function BulkImportPage() {
   const [step, setStep] = useState(1); // 1: Upload, 2: Preview, 3: Success
   const [schoolId, setSchoolId] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [isMaintenanceOpen, setIsMaintenanceOpen] = useState(true);
 
   const stats = useMemo(() => {
     let errCount = 0;
@@ -436,6 +438,11 @@ export default function BulkImportPage() {
            </div>
         </div>
       )}
+
+      <MaintenanceModal 
+        isOpen={isMaintenanceOpen} 
+        onClose={() => setIsMaintenanceOpen(false)} 
+      />
     </div>
   );
 }

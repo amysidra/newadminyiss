@@ -20,6 +20,7 @@ import {
   GraduationCap,
   Hammer
 } from "lucide-react";
+import { MaintenanceModal } from "@/components/admin/MaintenanceModal";
 
 interface Civitas {
   id: number;
@@ -116,6 +117,7 @@ const DUMMY_CIVITAS: Civitas[] = [
 export default function CivitasPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedUnit, setSelectedUnit] = useState<string>("All");
+  const [isMaintenanceOpen, setIsMaintenanceOpen] = useState(true);
 
   const filteredCivitas = useMemo(() => {
     return DUMMY_CIVITAS.filter(c => {
@@ -315,6 +317,11 @@ export default function CivitasPage() {
           </div>
         )}
       </div>
+
+      <MaintenanceModal 
+        isOpen={isMaintenanceOpen} 
+        onClose={() => setIsMaintenanceOpen(false)} 
+      />
     </div>
   );
 }
