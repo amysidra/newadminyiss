@@ -1,13 +1,13 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { 
-  FileUp, 
-  Download, 
-  Users, 
-  CheckCircle2, 
-  AlertCircle, 
-  Loader2, 
+import {
+  FileUp,
+  Download,
+  Users,
+  CheckCircle2,
+  AlertCircle,
+  Loader2,
   ChevronLeft,
   Trash2,
   Database
@@ -15,8 +15,6 @@ import {
 import Link from "next/link";
 import * as XLSX from "xlsx";
 import { createClient } from "@/lib/supabase/client";
-import { MaintenanceModal } from "@/components/admin/MaintenanceModal";
-import GoogleDrivePicker from "@/components/bulk/GoogleDrivePicker";
 
 interface RowData {
   nisn: string;
@@ -37,19 +35,19 @@ interface ValidationResult extends RowData {
 }
 
 export default function BulkImportPage() {
-  const [file, setFile] = useState<File | null>(null);
+  const [, setFile] = useState<File | null>(null);
   const [isCheckingContext, setIsCheckingContext] = useState(true);
   const [data, setData] = useState<ValidationResult[]>([]);
   const [loading, setLoading] = useState(false);
-  const [step, setStep] = useState(1); // 1: Upload, 2: Preview, 3: Success
-  const [schoolId, setSchoolId] = useState<string | null>(null);
+  const [step, setStep] = useState(1);
   const [userId, setUserId] = useState<string | null>(null);
-  const [isMaintenanceOpen, setIsMaintenanceOpen] = useState(true);
 
   const stats = useMemo(() => {
     let errCount = 0;
     let newGCount = 0;
     let linkGCount = 0;
+
+    const uniqueNewPhones = new Set<string>();
 
     data.forEach(item => {
       if (item.status === "error") errCount++;
@@ -57,12 +55,14 @@ export default function BulkImportPage() {
         linkGCount++;
       } else if (item.nama_wali) {
         newGCount++;
+        if (item.kontak_wali) uniqueNewPhones.add(item.kontak_wali);
       }
     });
 
     return {
       total: data.length,
       newGuardians: newGCount,
+      uniqueNewGuardians: uniqueNewPhones.size,
       linkedGuardians: linkGCount,
       errors: errCount
     };
@@ -75,18 +75,7 @@ export default function BulkImportPage() {
       try {
         setIsCheckingContext(true);
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-
-        const { data: profile } = await supabase
-          .from("users")
-          .select("school_id")
-          .eq("id", user.id)
-          .single();
-        
-        if (profile?.school_id) {
-          setSchoolId(profile.school_id);
-          setUserId(user.id);
-        }
+        if (user) setUserId(user.id);
       } catch (err) {
         console.error("Error fetching context:", err);
       } finally {
@@ -98,8 +87,24 @@ export default function BulkImportPage() {
 
   const downloadTemplate = () => {
     const headers = [
-      ["NISN", "Nama Murid", "Unit (TK/SD/SMP/SMA)", "Kelas", "Jenis Kelamin (Laki-laki/Perempuan)", "Nama Wali", "Hubungan Wali (Ayah/Ibu/Wali)", "No HP/WA Wali", "Email Wali"],
-      ["1234567890", "Ahmad Syarif", "SD", "1A", "Laki-laki", "Budi Santoso", "Ayah", "08123456789", "budi@email.com"]
+      ["NISN", "Nama Murid", "Unit (TK/SD/SMP/SMA/LPI)", "Kelas", "Jenis Kelamin (Laki-laki/Perempuan)", "Nama Wali", "Hubungan Wali (Ayah/Ibu/Wali)", "No HP/WA Wali", "Email Wali"],
+      ["3101234561", "Ahmad Fauzi",          "LPI", "REG 1", "Laki-laki",  "Hendra Kusuma",      "Ayah", "6281234560001", "hendra1@email.com"],
+      ["3101234562", "Muhammad Rizki",        "LPI", "REG 1", "Laki-laki",  "Samsul Arifin",      "Ayah", "6281234560002", "samsul2@email.com"],
+      ["3101234563", "Nur Hidayah",           "LPI", "REG 2", "Perempuan",  "Wati Rahayu",        "Ibu",  "6281234560003", "wati3@email.com"],
+      ["3101234564", "Siti Aminah",           "LPI", "REG 2", "Perempuan",  "Dewi Lestari",       "Ibu",  "6281234560004", "dewi4@email.com"],
+      ["3101234565", "Fajar Ramadhan",        "LPI", "REG 2", "Laki-laki",  "Agus Salim",         "Ayah", "6281234560005", "agus5@email.com"],
+      ["3101234566", "Bagas Prasetyo",        "LPI", "REG 2", "Laki-laki",  "Bambang Eko",        "Ayah", "6281234560006", "bambang6@email.com"],
+      ["3101234567", "Rizky Maulana",         "LPI", "REG 2", "Laki-laki",  "Dedi Supriyadi",     "Ayah", "6281234560007", "dedi7@email.com"],
+      ["3101234568", "Dinda Permata",         "LPI", "REG 2", "Perempuan",  "Yuli Astuti",        "Ibu",  "6281234560008", "yuli8@email.com"],
+      ["3101234569", "Khoirul Anam",          "LPI", "REG 3", "Laki-laki",  "Imam Wahyudi",       "Ayah", "6281234560009", "imam9@email.com"],
+      ["3101234570", "Dzulqornain",           "LPI", "REG 3", "Laki-laki",  "Fauzi Rahman",       "Ayah", "6281234560010", "fauzi10@email.com"],
+      ["3101234571", "Kenito Alifian",        "LPI", "REG 3", "Laki-laki",  "Sumadi Zaidan",      "Ayah", "6281234560011", "sumadi11@email.com"],
+      ["3101234572", "Muhammad Daffa",        "LPI", "REG 3", "Laki-laki",  "Eko Prasetyo",       "Ayah", "6281234560012", "eko12@email.com"],
+      ["3101234573", "Ribut Siswanto",        "LPI", "REG 3", "Laki-laki",  "Sugeng Riyadi",      "Ayah", "6281234560013", "sugeng13@email.com"],
+      ["3101234574", "Zaid Faezya",           "LPI", "REG 3", "Laki-laki",  "Hakim Santoso",      "Ayah", "6281234560014", "hakim14@email.com"],
+      ["3101234575", "Ilyas Al Farroos",      "LPI", "REG 4", "Laki-laki",  "Ridwan Effendi",     "Ayah", "6281234560015", "ridwan15@email.com"],
+      ["3101234576", "Fadhil Fayadh",         "LPI", "REG 4", "Laki-laki",  "Taufik Hidayat",     "Ayah", "6281234560016", "taufik16@email.com"],
+      ["3101234577", "Zaidan Yafi Alifudin",  "LPI", "REG 4", "Laki-laki",  "Arifin Nugroho",     "Ayah", "6281234560017", "arifin17@email.com"],
     ];
     const ws = XLSX.utils.aoa_to_sheet(headers);
     const wb = XLSX.utils.book_new();
@@ -120,29 +125,52 @@ export default function BulkImportPage() {
     const reader = new FileReader();
     reader.onload = async (evt) => {
       try {
-        const bstr = evt.target?.result as string;
-        const wb = XLSX.read(bstr, { type: "binary" });
+        const bstr = evt.target?.result as ArrayBuffer;
+        const wb = XLSX.read(bstr, { type: "array" });
         const wsname = wb.SheetNames[0];
         const ws = wb.Sheets[wsname];
         const rawData = XLSX.utils.sheet_to_json(ws, { header: 1 }) as any[][];
 
-        // Skip header
         const rows = rawData.slice(1).filter(r => r.length > 0);
-        
+
+        const VALID_UNITS = ["TK", "SD", "SMP", "SMA", "LPI"];
+        const VALID_RELATIONSHIPS = ["Ayah", "Ibu", "Wali"];
+
+        const normalizeUnit = (val: any): string =>
+          VALID_UNITS.find(u => u === String(val || "").trim().toUpperCase()) ?? String(val || "").trim();
+
+        const normalizeGender = (val: any): string => {
+          const v = String(val || "").trim().toLowerCase();
+          if (v.startsWith("l")) return "Laki-laki";
+          if (v.startsWith("p")) return "Perempuan";
+          return String(val || "").trim();
+        };
+
+        const RELATIONSHIP_ALIASES: Record<string, string> = {
+          ayah: "Ayah", bapak: "Ayah", papa: "Ayah", abi: "Ayah", abah: "Ayah",
+          ibu: "Ibu", mama: "Ibu", ummi: "Ibu", bunda: "Ibu",
+          wali: "Wali", paman: "Wali", bibi: "Wali", kakek: "Wali", nenek: "Wali",
+        };
+        const normalizeRelationship = (val: any): string => {
+          const key = String(val || "").trim().toLowerCase();
+          return RELATIONSHIP_ALIASES[key]
+            ?? VALID_RELATIONSHIPS.find(r => r.toLowerCase() === key)
+            ?? "Wali";
+        };
+
         const mappedData: ValidationResult[] = rows.map((r) => ({
-          nisn: String(r[0] || ""),
-          nama_murid: String(r[1] || ""),
-          unit: String(r[2] || "SD"),
-          kelas: String(r[3] || ""),
-          jenis_kelamin: String(r[4] || "Laki-laki"),
-          nama_wali: String(r[5] || ""),
-          hubungan_wali: String(r[6] || "Ayah"),
-          kontak_wali: String(r[7] || ""),
-          email_wali: String(r[8] || ""),
+          nisn: String(r[0] || "").trim(),
+          nama_murid: String(r[1] || "").trim(),
+          unit: normalizeUnit(r[2]),
+          kelas: String(r[3] || "").trim(),
+          jenis_kelamin: normalizeGender(r[4]),
+          nama_wali: String(r[5] || "").trim(),
+          hubungan_wali: normalizeRelationship(r[6]),
+          kontak_wali: String(r[7] || "").trim(),
+          email_wali: String(r[8] || "").trim(),
           status: "ready"
         }));
 
-        // Validate
         const validated = await validateData(mappedData);
         setData(validated);
         setStep(2);
@@ -153,28 +181,33 @@ export default function BulkImportPage() {
         setLoading(false);
       }
     };
-    reader.readAsBinaryString(uploadedFile);
+    reader.readAsArrayBuffer(uploadedFile);
   };
 
   const validateData = async (items: ValidationResult[]) => {
-    if (!schoolId) return items;
-
-    // Fetch existing guardians to match by phone
     const { data: existingGuardians } = await supabase
       .from("guardians")
-      .select("id, phone, fullname")
-      .eq("school_id", schoolId);
+      .select("id, phone");
 
     const guardianPhones = new Set(existingGuardians?.map(g => g.phone) || []);
-    
+
     const results = items.map(item => {
       let status: "ready" | "error" | "warning" = "ready";
       let message = "";
       let exists_guardian = false;
 
+      const VALID_UNITS = ["TK", "SD", "SMP", "SMA", "LPI"];
+      const VALID_GENDERS = ["Laki-laki", "Perempuan"];
+
       if (!item.nama_murid) {
         status = "error";
         message = "Nama murid wajib diisi";
+      } else if (!VALID_UNITS.includes(item.unit)) {
+        status = "error";
+        message = `Unit tidak valid: "${item.unit}". Harus TK/SD/SMP/SMA`;
+      } else if (!VALID_GENDERS.includes(item.jenis_kelamin)) {
+        status = "error";
+        message = `Jenis kelamin tidak valid: "${item.jenis_kelamin}"`;
       } else if (!item.nisn) {
         status = "warning";
         message = "NISN kosong (Direkomendasikan isi)";
@@ -191,52 +224,90 @@ export default function BulkImportPage() {
   };
 
   const startImport = async () => {
-    if (!schoolId || !userId) return;
+    if (!userId) return;
     setLoading(true);
 
     try {
-      // 1. Process Guardians first (unique by phone)
-      const uniqueGuardians = Array.from(new Set(data.filter(d => !d.exists_guardian && d.kontak_wali).map(d => d.kontak_wali)))
-        .map(phone => {
-          const firstOccurence = data.find(d => d.kontak_wali === phone);
-          return {
-            fullname: firstOccurence?.nama_wali,
-            phone: phone,
-            email: firstOccurence?.email_wali,
-            relationship: firstOccurence?.hubungan_wali as any,
-            school_id: schoolId,
-            user_id: userId
-          };
-        });
+      // 1. Process new Guardians — create user record first, then guardian record
+      const uniqueNewGuardians = Array.from(
+        new Map(
+          data
+            .filter(d => !d.exists_guardian && d.kontak_wali)
+            .map(d => [d.kontak_wali, d])
+        ).values()
+      );
 
-      if (uniqueGuardians.length > 0) {
-        const { error: gError } = await supabase.from("guardians").insert(uniqueGuardians);
-        if (gError) throw gError;
+      const guardianMap = new Map<string, string>();
+      const guardianErrors: string[] = [];
+
+      for (const guardian of uniqueNewGuardians) {
+        try {
+          const { data: userData, error: userError } = await supabase
+            .from("users")
+            .insert({
+              first_name: guardian.nama_wali || null,
+              last_name: null,
+              phone: guardian.kontak_wali || null,
+              email: guardian.email_wali || null,
+            })
+            .select("id")
+            .single();
+
+          if (userError) throw userError;
+
+          const { data: guardianData, error: gError } = await supabase
+            .from("guardians")
+            .insert({
+              user_id: userData.id,
+              phone: guardian.kontak_wali || null,
+              email: guardian.email_wali || null,
+              relationship: guardian.hubungan_wali as any,
+            })
+            .select("id")
+            .single();
+
+          if (gError) throw gError;
+          guardianMap.set(guardian.kontak_wali, guardianData.id);
+        } catch (err: any) {
+          console.error(`Gagal insert wali (${guardian.nama_wali}):`, err);
+          guardianErrors.push(`${guardian.nama_wali} (${guardian.kontak_wali}): ${err.message}`);
+        }
       }
 
-      // 2. Fetch all guardians again to get correct IDs
+      // 2. Fetch all guardians to fill phone→id map for existing ones
       const { data: allGuardians } = await supabase
         .from("guardians")
-        .select("id, phone")
-        .eq("school_id", schoolId);
-      
-      const guardianMap = new Map(allGuardians?.map(g => [g.phone, g.id]));
+        .select("id, phone");
+
+      allGuardians?.forEach(g => {
+        if (g.phone && !guardianMap.has(g.phone)) {
+          guardianMap.set(g.phone, g.id);
+        }
+      });
 
       // 3. Process Students
+      const VALID_UNITS = ["TK", "SD", "SMP", "SMA", "LPI"];
+      const VALID_GENDERS = ["Laki-laki", "Perempuan"];
+
       const studentInserts = data.filter(d => d.status !== "error").map(d => ({
-        nisn: d.nisn,
+        nisn: d.nisn || null,
         fullname: d.nama_murid,
-        unit: d.unit as any,
-        grade: d.kelas,
-        gender: d.jenis_kelamin as any,
+        unit: VALID_UNITS.includes(d.unit) ? d.unit : null,
+        grade: d.kelas || null,
+        gender: VALID_GENDERS.includes(d.jenis_kelamin) ? d.jenis_kelamin : null,
         status: "Aktif",
-        guardian_id: d.kontak_wali ? guardianMap.get(d.kontak_wali) : null,
-        school_id: schoolId,
-        user_id: userId
+        guardian_id: d.kontak_wali ? (guardianMap.get(d.kontak_wali) ?? null) : null,
+        user_id: userId,
       }));
+
+
 
       const { error: sError } = await supabase.from("students").insert(studentInserts);
       if (sError) throw sError;
+
+      if (guardianErrors.length > 0) {
+alert(`Impor selesai, namun ${guardianErrors.length} wali gagal disimpan:\n\n${guardianErrors.join("\n")}\n\nData murid tetap berhasil diimpor.`);
+      }
 
       setStep(3);
     } catch (err: any) {
@@ -270,21 +341,13 @@ export default function BulkImportPage() {
              </div>
              <h2 className="text-xl font-bold text-slate-800 mb-2">Unduh Template</h2>
              <p className="text-slate-500 mb-8 max-w-sm">Gunakan template resmi kami agar format data Anda sesuai dengan standar sistem.</p>
-             <div className="flex flex-col sm:flex-row gap-4">
-                <button 
-                    onClick={downloadTemplate}
-                    className="flex items-center gap-2 px-6 py-3 bg-white border-2 border-[#1a7a4a] text-[#1a7a4a] rounded-xl font-bold hover:bg-green-50 transition-all active:scale-95"
-                >
-                    <Download className="w-5 h-5" />
-                    Download Template
-                </button>
-                <div className={`${(isCheckingContext || !schoolId) ? 'opacity-50 pointer-events-none' : ''}`}>
-                    <GoogleDrivePicker 
-                        onFileSelect={processFile} 
-                        isLoading={loading} 
-                    />
-                </div>
-             </div>
+             <button
+                 onClick={downloadTemplate}
+                 className="flex items-center gap-2 px-6 py-3 bg-white border-2 border-[#1a7a4a] text-[#1a7a4a] rounded-xl font-bold hover:bg-green-50 transition-all active:scale-95"
+             >
+                 <Download className="w-5 h-5" />
+                 Download Template
+             </button>
           </div>
 
           <div className="bg-white p-8 rounded-3xl border-2 border-dashed border-slate-300 shadow-sm flex flex-col items-center justify-center text-center">
@@ -293,18 +356,18 @@ export default function BulkImportPage() {
              </div>
              <h2 className="text-xl font-bold text-slate-800 mb-2">Upload File Excel</h2>
              <p className="text-slate-500 mb-8 max-w-sm">Pastikan data Anda sudah sesuai dengan template yang diunduh.</p>
-             
-             <label className={`cursor-pointer group ${(isCheckingContext || !schoolId) ? 'opacity-50 pointer-events-none' : ''}`}>
+
+             <label className={`cursor-pointer group ${(isCheckingContext || !userId) ? 'opacity-50 pointer-events-none' : ''}`}>
                 <div className="px-8 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20 active:scale-95 flex items-center gap-2">
                    {loading || isCheckingContext ? <Loader2 className="w-5 h-5 animate-spin" /> : <FileUp className="w-5 h-5" />}
-                   {isCheckingContext ? "Checking System..." : !schoolId ? "Access Denied" : "Pilih Berkas Excel"}
+                   {isCheckingContext ? "Checking System..." : !userId ? "Access Denied" : "Pilih Berkas Excel"}
                 </div>
-                <input type="file" className="hidden" accept=".xlsx, .xls" onChange={handleFileUpload} disabled={loading || isCheckingContext || !schoolId} />
+                <input type="file" className="hidden" accept=".xlsx, .xls" onChange={handleFileUpload} disabled={loading || isCheckingContext || !userId} />
              </label>
-             {!isCheckingContext && !schoolId && (
+             {!isCheckingContext && !userId && (
                <p className="text-rose-500 text-xs mt-3 font-medium flex items-center gap-1 justify-center">
                  <AlertCircle className="w-3 h-3" />
-                 Anda tidak memiliki akses ke sekolah manapun.
+                 Anda tidak memiliki akses. Silakan login kembali.
                </p>
              )}
           </div>
@@ -324,8 +387,9 @@ export default function BulkImportPage() {
                  <p className="text-2xl font-bold text-blue-600">{stats.linkedGuardians} <span className="text-xs font-medium text-slate-400">Existing</span></p>
               </div>
               <div className="bg-white p-4 rounded-2xl border border-slate-200">
-                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 text-[#1a7a4a]">Wali Baru</p>
-                 <p className="text-2xl font-bold text-[#1a7a4a]">+{stats.newGuardians}</p>
+                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 text-[#1a7a4a]">Wali Baru Unik</p>
+                 <p className="text-2xl font-bold text-[#1a7a4a]">+{stats.uniqueNewGuardians}</p>
+                 <p className="text-[10px] text-slate-400 mt-0.5">{stats.newGuardians} baris data</p>
               </div>
               <div className="bg-white p-4 rounded-2xl border border-slate-200">
                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 text-rose-600">Masalah Data</p>
@@ -390,7 +454,7 @@ export default function BulkImportPage() {
 
            {/* Footer Action */}
            <div className="p-8 bg-slate-50 flex items-center justify-between border-t border-slate-200">
-              <button 
+              <button
                  onClick={() => setStep(1)}
                  className="flex items-center gap-2 text-slate-500 font-bold hover:text-slate-800 transition-colors"
                   disabled={loading}
@@ -398,7 +462,7 @@ export default function BulkImportPage() {
                  <Trash2 className="w-5 h-5" />
                  Batalkan & Cari Berkas Lain
               </button>
-              <button 
+              <button
                  onClick={startImport}
                  disabled={loading || stats.errors > 0 || stats.total === 0}
                  className="px-10 py-4 bg-[#1a7a4a] text-white rounded-2xl font-bold hover:bg-[#15603b] transition-all shadow-xl shadow-green-600/20 active:scale-95 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -423,14 +487,14 @@ export default function BulkImportPage() {
               Selamat! Data {stats.total} murid dan wali telah berhasil ditambahkan ke dalam database sekolah Anda.
            </p>
            <div className="flex flex-col sm:flex-row gap-4">
-              <Link 
+              <Link
                  href="/dashboard/students"
                  className="px-8 py-3.5 bg-[#1a7a4a] text-white rounded-2xl font-bold hover:bg-[#15603b] transition-all shadow-lg shadow-green-600/20 active:scale-95 flex items-center gap-2"
               >
                  <Users className="w-5 h-5" /> Lihat Database Murid
               </Link>
-              <button 
-                 onClick={() => setStep(1)}
+              <button
+                 onClick={() => { setStep(1); setData([]); setFile(null); }}
                  className="px-8 py-3.5 bg-white border border-slate-200 text-slate-600 rounded-2xl font-bold hover:bg-slate-50 transition-all"
               >
                  Impor File Lagi
@@ -438,11 +502,6 @@ export default function BulkImportPage() {
            </div>
         </div>
       )}
-
-      <MaintenanceModal 
-        isOpen={isMaintenanceOpen} 
-        onClose={() => setIsMaintenanceOpen(false)} 
-      />
     </div>
   );
 }

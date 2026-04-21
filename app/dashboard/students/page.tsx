@@ -165,6 +165,7 @@ export default function StudentsPage() {
     sd: students.filter((s) => s.unit === "SD").length,
     smp: students.filter((s) => s.unit === "SMP").length,
     sma: students.filter((s) => s.unit === "SMA").length,
+    lpi: students.filter((s) => s.unit === "LPI").length,
   }), [students]);
 
   return (
@@ -194,13 +195,14 @@ export default function StudentsPage() {
         </div>
       </header>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
         {[
           { label: "Total Murid", value: stats.total, icon: GraduationCap, color: "green" },
-          { label: "Unit TK", value: stats.tk, icon: Heart, color: "rose" },
-          { label: "Unit SD", value: stats.sd, icon: Building, color: "amber" },
-          { label: "Unit SMP", value: stats.smp, icon: ShieldCheck, color: "blue" },
-          { label: "Unit SMA", value: stats.sma, icon: BookOpen, color: "indigo" },
+          { label: "Jenjang TK", value: stats.tk, icon: Heart, color: "rose" },
+          { label: "Jenjang SD", value: stats.sd, icon: Building, color: "amber" },
+          { label: "Jenjang SMP", value: stats.smp, icon: ShieldCheck, color: "blue" },
+          { label: "Jenjang SMA", value: stats.sma, icon: BookOpen, color: "indigo" },
+          { label: "Jenjang LPI", value: stats.lpi, icon: GraduationCap, color: "purple" },
         ].map(({ label, value, icon: Icon, color }) => (
           <div key={label} className={`bg-white p-5 rounded-2xl border border-slate-200 shadow-sm transition-all hover:shadow-md group`}>
             <div className={`h-10 w-10 rounded-xl bg-${color}-50 flex items-center justify-center text-${color}-600 mb-3 group-hover:bg-${color}-600 group-hover:text-white transition-colors`}>
@@ -225,7 +227,7 @@ export default function StudentsPage() {
             />
           </div>
           <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
-            {["All", "TK", "SD", "SMP", "SMA"].map((unit) => (
+            {["All", "TK", "SD", "SMP", "SMA", "LPI"].map((unit) => (
               <button
                 key={unit}
                 onClick={() => setSelectedUnit(unit)}
@@ -235,7 +237,7 @@ export default function StudentsPage() {
                     : "bg-white text-slate-500 border-slate-200 hover:bg-slate-50"
                 }`}
               >
-                {unit === "All" ? "Semua Unit" : unit}
+                {unit === "All" ? "Semua Jenjang" : unit}
               </button>
             ))}
             <div className="h-8 w-px bg-slate-200 mx-2 hidden md:block"></div>

@@ -153,7 +153,7 @@ CREATE TABLE IF NOT EXISTS public.students (
   CONSTRAINT students_status_check
     CHECK (status = ANY (ARRAY['Aktif'::text, 'Lulus'::text, 'Keluar'::text])),
   CONSTRAINT students_unit_check
-    CHECK (unit = ANY (ARRAY['TK'::text, 'SD'::text, 'SMP'::text, 'SMA'::text]))
+    CHECK (unit = ANY (ARRAY['TK'::text, 'SD'::text, 'SMP'::text, 'SMA'::text, 'LPI'::text]))
 );
 
 ALTER TABLE public.students OWNER TO postgres;
