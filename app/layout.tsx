@@ -20,7 +20,7 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "Login — YISS",
+  title: "Portal Pendidikan YISS",
   description: "Portal login Yayasan Islam",
 };
 
