@@ -191,6 +191,12 @@ function LoginPageInner() {
             Don&apos;t have an account?{" "}
             <a href="/register" className="signup-link">Sign up</a>
           </p>
+
+          <div className="legal-links">
+            <a href="/privacy" className="legal-link">Privacy Policy</a>
+            <span className="legal-dot">•</span>
+            <a href="/terms" className="legal-link">Terms of Service</a>
+          </div>
         </div>
       </div>
 
@@ -440,6 +446,28 @@ function LoginPageInner() {
           text-decoration: none;
         }
         .signup-link:hover { text-decoration: underline; }
+        
+        .legal-links {
+          margin-top: 2rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.75rem;
+          font-size: 0.75rem;
+          color: #9ca3af;
+        }
+        .legal-link {
+          color: #9ca3af;
+          text-decoration: none;
+          transition: color 0.15s;
+        }
+        .legal-link:hover {
+          color: #1a7a4a;
+          text-decoration: underline;
+        }
+        .legal-dot {
+          color: #e5e7eb;
+        }
 
         /* ── Responsive ── */
         @media (max-width: 768px) {
@@ -478,6 +506,7 @@ function LoginPageInner() {
           .toggle-pw { color: #6b7280; }
           .toggle-pw:hover { color: #d1d5db; }
           .signup-hint { color: #9ca3af; }
+          .legal-dot { color: #374151; }
         }
 
         :where(.dark) .left-panel { background: #111827; border-right-color: #1f2937; }
@@ -498,6 +527,7 @@ function LoginPageInner() {
         :where(.dark) .toggle-pw { color: #6b7280; }
         :where(.dark) .toggle-pw:hover { color: #d1d5db; }
         :where(.dark) .signup-hint { color: #9ca3af; }
+        :where(.dark) .legal-dot { color: #374151; }
       `}</style>
     </div>
   );
