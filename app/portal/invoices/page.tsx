@@ -39,7 +39,6 @@ export default function PortalInvoicesPage() {
   const [activeTab, setActiveTab] = useState<TabType>("unpaid");
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Load Midtrans Snap
   useEffect(() => {
     if (!MIDTRANS_CLIENT_KEY) return;
     const scriptId = "midtrans-script";
@@ -162,57 +161,61 @@ export default function PortalInvoicesPage() {
 
   const statusStyle = (status: string) => {
     const s = status.toUpperCase();
-    if (["PAID","SETTLED"].includes(s)) return { card: "bg-green-50 text-[#1a7a4a]", badge: "bg-green-100 text-[#1a7a4a]" };
-    if (s === "PENDING") return { card: "bg-amber-50 text-amber-600", badge: "bg-amber-100 text-amber-700" };
-    if (s === "UNPAID")  return { card: "bg-blue-50 text-blue-600",   badge: "bg-blue-100 text-blue-700" };
-    return { card: "bg-rose-50 text-rose-600", badge: "bg-rose-100 text-rose-700" };
+    if (["PAID","SETTLED"].includes(s)) return { card: "bg-green-50 text-[#1a7a4a] dark:bg-green-950/40 dark:text-green-400", badge: "bg-green-100 text-[#1a7a4a] dark:bg-green-950/40 dark:text-green-400" };
+    if (s === "PENDING") return { card: "bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400", badge: "bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400" };
+    if (s === "UNPAID")  return { card: "bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400",   badge: "bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400" };
+    return { card: "bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400", badge: "bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400" };
   };
 
   return (
     <div className="max-w-4xl mx-auto pb-20">
       <header className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-800 tracking-tight">Tagihan SPP</h1>
-        <p className="mt-1 text-slate-500">Pantau dan bayar tagihan putra/putri Anda.</p>
+        <h1 className="text-3xl font-bold text-slate-800 dark:text-white tracking-tight">Tagihan SPP</h1>
+        <p className="mt-1 text-slate-500 dark:text-slate-400">Pantau dan bayar tagihan putra/putri Anda.</p>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-        <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex items-center gap-5">
-          <div className="h-14 w-14 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-5">
+          <div className="h-14 w-14 rounded-2xl bg-amber-50 dark:bg-amber-950/40 flex items-center justify-center text-amber-600 dark:text-amber-400">
             <Clock className="w-7 h-7" />
           </div>
           <div>
-            <p className="text-sm font-medium text-slate-500">Total Belum Dibayar</p>
-            <p className="text-2xl font-bold text-slate-900 mt-1">Rp {stats.unpaid.toLocaleString("id-ID")}</p>
+            <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Total Belum Dibayar</p>
+            <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">Rp {stats.unpaid.toLocaleString("id-ID")}</p>
           </div>
           <div className="ml-auto text-amber-500 opacity-20"><TrendingUp className="w-12 h-12" /></div>
         </div>
 
-        <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex items-center gap-5">
-          <div className="h-14 w-14 rounded-2xl bg-green-50 flex items-center justify-center text-[#1a7a4a]">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-5">
+          <div className="h-14 w-14 rounded-2xl bg-green-50 dark:bg-green-950/40 flex items-center justify-center text-[#1a7a4a] dark:text-green-400">
             <CheckCircle2 className="w-7 h-7" />
           </div>
           <div>
-            <p className="text-sm font-medium text-slate-500">Total Terbayar</p>
-            <p className="text-2xl font-bold text-[#1a7a4a] mt-1">Rp {stats.paid.toLocaleString("id-ID")}</p>
+            <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Total Terbayar</p>
+            <p className="text-2xl font-bold text-[#1a7a4a] dark:text-green-400 mt-1">Rp {stats.paid.toLocaleString("id-ID")}</p>
           </div>
           <div className="ml-auto text-[#1a7a4a] opacity-20"><Banknote className="w-12 h-12" /></div>
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-6">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden mb-6">
         <div className="p-4 md:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center gap-1 p-1 bg-slate-50 rounded-xl w-fit overflow-x-auto">
+          <div className="flex items-center gap-1 p-1 bg-slate-50 dark:bg-slate-800 rounded-xl w-fit overflow-x-auto">
             {tabs.map(tab => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
-                  activeTab === tab.id ? "bg-white text-[#1a7a4a] shadow-sm" : "text-slate-500 hover:text-slate-800"
+                  activeTab === tab.id
+                    ? "bg-white dark:bg-slate-700 text-[#1a7a4a] dark:text-green-400 shadow-sm"
+                    : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
                 }`}
               >
                 {tab.label}
                 <span className={`ml-2 px-1.5 py-0.5 rounded-md text-[10px] ${
-                  activeTab === tab.id ? "bg-green-100 text-[#1a7a4a]" : "bg-slate-200 text-slate-600"
+                  activeTab === tab.id
+                    ? "bg-green-100 dark:bg-green-950/40 text-[#1a7a4a] dark:text-green-400"
+                    : "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400"
                 }`}>
                   {tab.count}
                 </span>
@@ -221,11 +224,11 @@ export default function PortalInvoicesPage() {
           </div>
 
           <div className="relative group w-full md:max-w-xs">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 w-4 h-4" />
             <input
               type="text"
               placeholder="Cari tagihan..."
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:border-[#1a7a4a] focus:ring-4 focus:ring-green-500/10 transition-all text-sm"
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 outline-none focus:border-[#1a7a4a] focus:ring-4 focus:ring-green-500/10 transition-all text-sm placeholder-slate-400 dark:placeholder-slate-500"
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
             />
@@ -235,17 +238,17 @@ export default function PortalInvoicesPage() {
 
       <div className="space-y-4">
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-slate-200">
+          <div className="flex flex-col items-center justify-center py-20 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700">
             <Loader2 className="w-8 h-8 text-[#1a7a4a] animate-spin mb-4" />
-            <p className="text-slate-500">Memuat tagihan...</p>
+            <p className="text-slate-500 dark:text-slate-400">Memuat tagihan...</p>
           </div>
         ) : filteredInvoices.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border-2 border-dashed border-slate-200">
-            <div className="h-16 w-16 rounded-full bg-slate-50 flex items-center justify-center text-slate-300 mb-4">
+          <div className="flex flex-col items-center justify-center py-20 bg-white dark:bg-slate-900 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700">
+            <div className="h-16 w-16 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-300 dark:text-slate-600 mb-4">
               <Filter className="w-8 h-8" />
             </div>
-            <h3 className="text-lg font-semibold text-slate-800">Tidak ada tagihan</h3>
-            <p className="text-slate-500 mt-1 text-sm">Semua bersih — tidak ada tagihan untuk filter ini.</p>
+            <h3 className="text-lg font-semibold text-slate-800 dark:text-white">Tidak ada tagihan</h3>
+            <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">Semua bersih — tidak ada tagihan untuk filter ini.</p>
           </div>
         ) : (
           filteredInvoices.map(inv => {
@@ -254,7 +257,7 @@ export default function PortalInvoicesPage() {
             return (
               <div
                 key={inv.id}
-                className="bg-white rounded-2xl border border-slate-200 p-5 md:p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 transition-all hover:border-green-300 hover:shadow-lg group"
+                className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 md:p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 transition-all hover:border-green-300 dark:hover:border-green-700 hover:shadow-lg group"
               >
                 <div className="flex items-start gap-4">
                   <div className={`p-3 rounded-2xl flex-shrink-0 ${style.card}`}>
@@ -262,7 +265,7 @@ export default function PortalInvoicesPage() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      <h3 className="font-bold text-slate-800 group-hover:text-[#1a7a4a] transition-colors truncate">
+                      <h3 className="font-bold text-slate-800 dark:text-white group-hover:text-[#1a7a4a] dark:group-hover:text-green-400 transition-colors truncate">
                         {inv.description}
                       </h3>
                       <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${style.badge}`}>
@@ -270,15 +273,15 @@ export default function PortalInvoicesPage() {
                       </span>
                     </div>
                     <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
-                      <div className="flex items-center gap-1.5 text-slate-500">
+                      <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
                         <GraduationCap className="w-3.5 h-3.5" />
-                        <span className="font-semibold text-slate-700">{inv.student.fullname}</span>
-                        <span className="text-slate-300">|</span>
+                        <span className="font-semibold text-slate-700 dark:text-slate-200">{inv.student.fullname}</span>
+                        <span className="text-slate-300 dark:text-slate-600">|</span>
                         <span>{inv.student.grade} {inv.student.unit}</span>
                       </div>
-                      <div className="flex items-center gap-1.5 text-slate-500">
+                      <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
                         <CreditCard className="w-3.5 h-3.5" />
-                        <span>Jatuh tempo: <span className="font-medium">
+                        <span>Jatuh tempo: <span className="font-medium text-slate-700 dark:text-slate-300">
                           {new Date(inv.due_date).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}
                         </span></span>
                       </div>
@@ -287,7 +290,7 @@ export default function PortalInvoicesPage() {
                 </div>
 
                 <div className="flex flex-col md:items-end gap-3">
-                  <p className="text-2xl font-black text-slate-900 leading-none">
+                  <p className="text-2xl font-black text-slate-900 dark:text-white leading-none">
                     Rp {inv.amount.toLocaleString("id-ID")}
                   </p>
                   {!isPaid && (

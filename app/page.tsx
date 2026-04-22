@@ -455,6 +455,47 @@ function LoginPageInner() {
             background: #f4f6f8;
           }
         }
+
+        /* ── Dark mode (OS preference + .dark class) ── */
+        @media (prefers-color-scheme: dark) {
+          .left-panel { background: #111827; border-right-color: #1f2937; }
+          .hero-heading { color: #f9fafb; }
+          .hero-desc { color: #9ca3af; }
+          .left-footer { color: #4b5563; }
+          .right-panel { background: #0f172a; }
+          .form-title { color: #f9fafb; }
+          .form-subtitle { color: #9ca3af; }
+          .sso-btn { background: #1f2937; border-color: #374151; color: #e5e7eb; }
+          .sso-btn:hover { background: #273548; }
+          .divider { color: #4b5563; }
+          .divider::before, .divider::after { background: #1f2937; }
+          .field-label { color: #d1d5db; }
+          .forgot-link { color: #9ca3af; }
+          .field-input { background: #1f2937; border-color: #374151; color: #f9fafb; }
+          .field-input::placeholder { color: #6b7280; }
+          .toggle-pw { color: #6b7280; }
+          .toggle-pw:hover { color: #d1d5db; }
+          .signup-hint { color: #9ca3af; }
+        }
+
+        :where(.dark) .left-panel { background: #111827; border-right-color: #1f2937; }
+        :where(.dark) .hero-heading { color: #f9fafb; }
+        :where(.dark) .hero-desc { color: #9ca3af; }
+        :where(.dark) .left-footer { color: #4b5563; }
+        :where(.dark) .right-panel { background: #0f172a; }
+        :where(.dark) .form-title { color: #f9fafb; }
+        :where(.dark) .form-subtitle { color: #9ca3af; }
+        :where(.dark) .sso-btn { background: #1f2937; border-color: #374151; color: #e5e7eb; }
+        :where(.dark) .sso-btn:hover { background: #273548; }
+        :where(.dark) .divider { color: #4b5563; }
+        :where(.dark) .divider::before, :where(.dark) .divider::after { background: #1f2937; }
+        :where(.dark) .field-label { color: #d1d5db; }
+        :where(.dark) .forgot-link { color: #9ca3af; }
+        :where(.dark) .field-input { background: #1f2937; border-color: #374151; color: #f9fafb; }
+        :where(.dark) .field-input::placeholder { color: #6b7280; }
+        :where(.dark) .toggle-pw { color: #6b7280; }
+        :where(.dark) .toggle-pw:hover { color: #d1d5db; }
+        :where(.dark) .signup-hint { color: #9ca3af; }
       `}</style>
     </div>
   );

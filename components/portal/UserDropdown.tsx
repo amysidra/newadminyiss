@@ -45,9 +45,9 @@ export function PortalUserDropdown() {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-3 p-1.5 rounded-xl hover:bg-slate-100 transition-all duration-200 group"
+        className="flex items-center gap-3 p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-200 group"
       >
-        <div className="bg-slate-200 w-9 h-9 rounded-full flex justify-center items-center overflow-hidden flex-shrink-0 border border-slate-200 shadow-sm group-hover:border-green-200 transition-colors">
+        <div className="bg-slate-200 dark:bg-slate-700 w-9 h-9 rounded-full flex justify-center items-center overflow-hidden flex-shrink-0 border border-slate-200 dark:border-slate-600 shadow-sm group-hover:border-green-200 transition-colors">
           {avatarUrl && !imageError ? (
             <img
               src={avatarUrl}
@@ -57,25 +57,25 @@ export function PortalUserDropdown() {
               onError={() => setImageError(true)}
             />
           ) : (
-            <svg className="w-6 h-6 text-slate-500" fill="currentColor" viewBox="0 0 24 24">
+            <svg className="w-6 h-6 text-slate-500 dark:text-slate-400" fill="currentColor" viewBox="0 0 24 24">
               <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
             </svg>
           )}
         </div>
         <div className="hidden md:flex flex-col items-start text-left mr-1">
-          <span className="text-sm font-bold text-slate-800 leading-none">{displayName}</span>
-          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md mt-1 bg-slate-100 text-slate-600">
+          <span className="text-sm font-bold text-slate-800 dark:text-slate-100 leading-none">{displayName}</span>
+          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md mt-1 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
             Wali Murid
           </span>
         </div>
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-64 bg-white border border-slate-200 rounded-2xl shadow-2xl z-50 overflow-hidden">
-          <div className="px-4 py-3 border-b border-slate-100">
-            <p className="text-sm font-bold text-slate-800 truncate">{displayName}</p>
-            <p className="text-xs text-slate-500 truncate mt-0.5">{displayEmail}</p>
-            <span className="inline-block text-[10px] font-bold px-2 py-0.5 rounded-md mt-1.5 bg-slate-100 text-slate-600">
+        <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl z-50 overflow-hidden">
+          <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
+            <p className="text-sm font-bold text-slate-800 dark:text-slate-100 truncate">{displayName}</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">{displayEmail}</p>
+            <span className="inline-block text-[10px] font-bold px-2 py-0.5 rounded-md mt-1.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
               Wali Murid
             </span>
           </div>
@@ -83,22 +83,22 @@ export function PortalUserDropdown() {
           <div className="p-2">
             <Link
               href="/portal/settings"
-              className="flex items-center gap-3 px-3 py-2.5 text-sm font-semibold text-slate-700 rounded-xl hover:bg-green-50 hover:text-[#1a7a4a] transition-all group/item"
+              className="flex items-center gap-3 px-3 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-300 rounded-xl hover:bg-green-50 dark:hover:bg-slate-800 hover:text-[#1a7a4a] dark:hover:text-green-400 transition-all group/item"
               onClick={() => setIsOpen(false)}
             >
-              <div className="p-1.5 rounded-lg bg-slate-100 group-hover/item:bg-green-100 transition-colors">
-                <Settings className="w-4 h-4 text-slate-600 group-hover/item:text-[#1a7a4a]" />
+              <div className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover/item:bg-green-100 dark:group-hover/item:bg-green-950 transition-colors">
+                <Settings className="w-4 h-4 text-slate-600 dark:text-slate-400 group-hover/item:text-[#1a7a4a] dark:group-hover/item:text-green-400" />
               </div>
               Pengaturan
             </Link>
 
-            <div className="h-px bg-slate-100 my-1 mx-2" />
+            <div className="h-px bg-slate-100 dark:bg-slate-800 my-1 mx-2" />
 
             <button
               onClick={handleLogout}
-              className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-semibold text-red-600 rounded-xl hover:bg-red-50 transition-all group/logout"
+              className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-semibold text-red-600 dark:text-red-400 rounded-xl hover:bg-red-50 dark:hover:bg-red-950/30 transition-all group/logout"
             >
-              <div className="p-1.5 rounded-lg bg-red-50/50 group-hover/logout:bg-red-100 transition-colors">
+              <div className="p-1.5 rounded-lg bg-red-50/50 dark:bg-red-950/20 group-hover/logout:bg-red-100 dark:group-hover/logout:bg-red-950/40 transition-colors">
                 <LogOut className="w-4 h-4" />
               </div>
               Logout

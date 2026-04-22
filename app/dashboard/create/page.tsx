@@ -130,13 +130,13 @@ export default function CreateInvoicePage() {
     return (
         <div className="max-w-4xl mx-auto">
             <header className="mb-8">
-                <h1 className="text-3xl font-bold text-slate-800 tracking-tight">Buat Tagihan</h1>
-                <p className="mt-2 text-slate-500">Masukkan detail di bawah ini untuk membuat tagihan baru.</p>
+                <h1 className="text-3xl font-bold text-slate-800 dark:text-white tracking-tight">Buat Tagihan</h1>
+                <p className="mt-2 text-slate-500 dark:text-slate-400">Masukkan detail di bawah ini untuk membuat tagihan baru.</p>
             </header>
 
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 md:p-8">
                 {status.success && (
-                    <div className="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-300">
+                    <div className="mb-6 p-4 bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 rounded-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-300">
                         <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                         </svg>
@@ -145,7 +145,7 @@ export default function CreateInvoicePage() {
                 )}
 
                 {status.error && (
-                    <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-300">
+                    <div className="mb-6 p-4 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 rounded-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-300">
                         <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
@@ -156,7 +156,7 @@ export default function CreateInvoicePage() {
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2 relative" ref={dropdownRef}>
-                            <label htmlFor="student_search" className="block text-sm font-medium text-slate-700">
+                            <label htmlFor="student_search" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                                 Nama Siswa
                             </label>
                             <div className="relative">
@@ -166,11 +166,11 @@ export default function CreateInvoicePage() {
                                     value={searchQuery}
                                     onChange={handleSearchChange}
                                     onFocus={() => setIsDropdownOpen(true)}
-                                    className="w-full pl-4 pr-10 py-3 rounded-xl bg-white border border-slate-300 text-slate-900 focus:border-[#1a7a4a] focus:ring-4 focus:ring-green-500/10 transition-all duration-200 outline-none hover:border-green-300 placeholder-slate-400"
+                                    className="w-full pl-4 pr-10 py-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 focus:border-[#1a7a4a] focus:ring-4 focus:ring-green-500/10 transition-all duration-200 outline-none hover:border-green-300 placeholder-slate-400 dark:placeholder-slate-500"
                                     placeholder="Ketik nama untuk mencari..."
                                     autoComplete="off"
                                 />
-                                <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
+                                <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500">
                                     {isLoadingStudents ? (
                                         <div className="animate-spin h-5 w-5 border-2 border-green-500 border-t-transparent rounded-full" />
                                     ) : searchQuery ? (
@@ -181,7 +181,7 @@ export default function CreateInvoicePage() {
                                                 setFormData(prev => ({ ...prev, student_id: '' }));
                                                 setIsDropdownOpen(true);
                                             }}
-                                            className="hover:text-slate-600 focus:outline-none"
+                                            className="hover:text-slate-600 dark:hover:text-slate-300 focus:outline-none"
                                         >
                                             <XCircle className="w-5 h-5" />
                                         </button>
@@ -194,24 +194,24 @@ export default function CreateInvoicePage() {
                             <input type="hidden" name="student_id" value={formData.student_id} required />
 
                             {isDropdownOpen && (
-                                <div className="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl max-h-60 overflow-y-auto">
+                                <div className="absolute z-10 w-full mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl max-h-60 overflow-y-auto">
                                     {filteredStudents.length > 0 ? (
                                         <ul className="py-1">
                                             {filteredStudents.map((student) => (
                                                 <li
                                                     key={student.id}
                                                     onClick={() => handleStudentSelect(student)}
-                                                    className="px-4 py-3 hover:bg-slate-50 cursor-pointer text-slate-700 transition-colors duration-150 flex items-center justify-between group"
+                                                    className="px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer text-slate-700 dark:text-slate-200 transition-colors duration-150 flex items-center justify-between group"
                                                 >
                                                     <span className="font-medium">{student.fullname}</span>
                                                     {formData.student_id === student.id && (
-                                                        <span className="text-green-600 text-sm font-semibold">Dipilih</span>
+                                                        <span className="text-green-600 dark:text-green-400 text-sm font-semibold">Dipilih</span>
                                                     )}
                                                 </li>
                                             ))}
                                         </ul>
                                     ) : (
-                                        <div className="px-4 py-3 text-slate-500 text-center text-sm">
+                                        <div className="px-4 py-3 text-slate-500 dark:text-slate-400 text-center text-sm">
                                             {isLoadingStudents ? 'Memuat...' : 'Siswa tidak ditemukan'}
                                         </div>
                                     )}
@@ -220,11 +220,11 @@ export default function CreateInvoicePage() {
                         </div>
 
                         <div className="space-y-2">
-                            <label htmlFor="amount" className="block text-sm font-medium text-slate-700">
+                            <label htmlFor="amount" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                                 Nominal
                             </label>
                             <div className="relative">
-                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-medium">Rp</span>
+                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 font-medium">Rp</span>
                                 <input
                                     type="text"
                                     id="amount"
@@ -232,7 +232,7 @@ export default function CreateInvoicePage() {
                                     value={formData.amount}
                                     onChange={handleAmountChange}
                                     required
-                                    className="w-full pl-12 pr-4 py-3 rounded-xl bg-white border border-slate-300 text-slate-900 focus:border-[#1a7a4a] focus:ring-4 focus:ring-green-500/10 transition-all duration-200 outline-none hover:border-green-300 placeholder-slate-400"
+                                    className="w-full pl-12 pr-4 py-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 focus:border-[#1a7a4a] focus:ring-4 focus:ring-green-500/10 transition-all duration-200 outline-none hover:border-green-300 placeholder-slate-400 dark:placeholder-slate-500"
                                     placeholder="Misal: 175.000"
                                 />
                             </div>
@@ -240,7 +240,7 @@ export default function CreateInvoicePage() {
                     </div>
 
                     <div className="space-y-2">
-                        <label htmlFor="description" className="block text-sm font-medium text-slate-700">
+                        <label htmlFor="description" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                             Keterangan
                         </label>
                         <textarea
@@ -250,7 +250,7 @@ export default function CreateInvoicePage() {
                             onChange={handleChange}
                             required
                             rows={4}
-                            className="w-full px-4 py-3 rounded-xl bg-white border border-slate-300 text-slate-900 focus:border-[#1a7a4a] focus:ring-4 focus:ring-green-500/10 transition-all duration-200 outline-none hover:border-green-300 resize-none placeholder-slate-400"
+                            className="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 focus:border-[#1a7a4a] focus:ring-4 focus:ring-green-500/10 transition-all duration-200 outline-none hover:border-green-300 resize-none placeholder-slate-400 dark:placeholder-slate-500"
                             placeholder="Misal: SPP Bulan Desember"
                         />
                     </div>

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Poppins } from "next/font/google";
+import { ThemeProvider } from "@/lib/context/ThemeContext";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -19,8 +20,8 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "Admin Login — YISS",
-  description: "Portal login administrator Yayasan Islam",
+  title: "Login — YISS",
+  description: "Portal login Yayasan Islam",
 };
 
 export default function RootLayout({
@@ -32,8 +33,19 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col font-poppins">{children}</body>
+      <head>
+        {/* Runs before paint to prevent flash of wrong theme */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){var s=localStorage.getItem('theme');var d=s==='dark'||(!s&&window.matchMedia('(prefers-color-scheme: dark)').matches);if(d)document.documentElement.classList.add('dark');})();`,
+          }}
+        />
+      </head>
+      <body className="min-h-full flex flex-col font-poppins">
+        <ThemeProvider>{children}</ThemeProvider>
+      </body>
     </html>
   );
 }

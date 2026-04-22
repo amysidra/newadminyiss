@@ -69,10 +69,10 @@ export default function PortalDashboardPage() {
   return (
     <div className="max-w-4xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-800 tracking-tight">
+        <h1 className="text-3xl font-bold text-slate-800 dark:text-white tracking-tight">
           Selamat Datang, {displayName}
         </h1>
-        <p className="text-slate-500 mt-1">Pantau tagihan dan informasi putra/putri Anda.</p>
+        <p className="text-slate-500 dark:text-slate-400 mt-1">Pantau tagihan dan informasi putra/putri Anda.</p>
       </div>
 
       {loading ? (
@@ -80,47 +80,47 @@ export default function PortalDashboardPage() {
           <Loader2 className="w-8 h-8 text-[#1a7a4a] animate-spin" />
         </div>
       ) : !profile?.guardianId ? (
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 text-amber-800">
+        <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-2xl p-6 text-amber-800 dark:text-amber-400">
           <p className="font-semibold">Akun Anda belum terhubung ke data wali murid.</p>
           <p className="text-sm mt-1">Silakan hubungi administrator sekolah untuk mengaitkan akun ini.</p>
         </div>
       ) : (
         <>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-            <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex items-center gap-4">
-              <div className="h-12 w-12 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600 flex-shrink-0">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-4">
+              <div className="h-12 w-12 rounded-2xl bg-amber-50 dark:bg-amber-950/40 flex items-center justify-center text-amber-600 flex-shrink-0">
                 <Clock className="w-6 h-6" />
               </div>
               <div>
-                <p className="text-xs font-medium text-slate-500">Tagihan Belum Bayar</p>
-                <p className="text-2xl font-bold text-slate-900 mt-0.5">
+                <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Tagihan Belum Bayar</p>
+                <p className="text-2xl font-bold text-slate-900 dark:text-white mt-0.5">
                   {stats?.unpaidCount ?? 0}
                 </p>
-                <p className="text-xs text-amber-600 font-semibold mt-0.5">
+                <p className="text-xs text-amber-600 dark:text-amber-400 font-semibold mt-0.5">
                   Rp {(stats?.unpaidTotal ?? 0).toLocaleString("id-ID")}
                 </p>
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex items-center gap-4">
-              <div className="h-12 w-12 rounded-2xl bg-green-50 flex items-center justify-center text-[#1a7a4a] flex-shrink-0">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-4">
+              <div className="h-12 w-12 rounded-2xl bg-green-50 dark:bg-green-950/40 flex items-center justify-center text-[#1a7a4a] dark:text-green-400 flex-shrink-0">
                 <CheckCircle2 className="w-6 h-6" />
               </div>
               <div>
-                <p className="text-xs font-medium text-slate-500">Total Terbayar</p>
-                <p className="text-xl font-bold text-[#1a7a4a] mt-0.5">
+                <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Total Terbayar</p>
+                <p className="text-xl font-bold text-[#1a7a4a] dark:text-green-400 mt-0.5">
                   Rp {(stats?.paidTotal ?? 0).toLocaleString("id-ID")}
                 </p>
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex items-center gap-4">
-              <div className="h-12 w-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600 flex-shrink-0">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-4">
+              <div className="h-12 w-12 rounded-2xl bg-blue-50 dark:bg-blue-950/40 flex items-center justify-center text-blue-600 flex-shrink-0">
                 <GraduationCap className="w-6 h-6" />
               </div>
               <div>
-                <p className="text-xs font-medium text-slate-500">Jumlah Murid</p>
-                <p className="text-2xl font-bold text-slate-900 mt-0.5">
+                <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Jumlah Murid</p>
+                <p className="text-2xl font-bold text-slate-900 dark:text-white mt-0.5">
                   {stats?.studentCount ?? 0}
                 </p>
               </div>
@@ -128,14 +128,14 @@ export default function PortalDashboardPage() {
           </div>
 
           {(stats?.unpaidCount ?? 0) > 0 && (
-            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 flex items-center justify-between">
+            <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-2xl p-6 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Receipt className="w-5 h-5 text-amber-600 flex-shrink-0" />
+                <Receipt className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0" />
                 <div>
-                  <p className="font-semibold text-amber-800">
+                  <p className="font-semibold text-amber-800 dark:text-amber-400">
                     Ada {stats!.unpaidCount} tagihan yang belum dibayar
                   </p>
-                  <p className="text-sm text-amber-700 mt-0.5">
+                  <p className="text-sm text-amber-700 dark:text-amber-500 mt-0.5">
                     Total: Rp {stats!.unpaidTotal.toLocaleString("id-ID")}
                   </p>
                 </div>

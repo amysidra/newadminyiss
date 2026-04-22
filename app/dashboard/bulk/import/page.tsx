@@ -228,7 +228,6 @@ export default function BulkImportPage() {
     setLoading(true);
 
     try {
-      // 1. Process new Guardians — create user record first, then guardian record
       const uniqueNewGuardians = Array.from(
         new Map(
           data
@@ -274,7 +273,6 @@ export default function BulkImportPage() {
         }
       }
 
-      // 2. Fetch all guardians to fill phone→id map for existing ones
       const { data: allGuardians } = await supabase
         .from("guardians")
         .select("id, phone");
@@ -285,7 +283,6 @@ export default function BulkImportPage() {
         }
       });
 
-      // 3. Process Students
       const VALID_UNITS = ["TK", "SD", "SMP", "SMA", "LPI"];
       const VALID_GENDERS = ["Laki-laki", "Perempuan"];
 
@@ -300,13 +297,11 @@ export default function BulkImportPage() {
         user_id: userId,
       }));
 
-
-
       const { error: sError } = await supabase.from("students").insert(studentInserts);
       if (sError) throw sError;
 
       if (guardianErrors.length > 0) {
-alert(`Impor selesai, namun ${guardianErrors.length} wali gagal disimpan:\n\n${guardianErrors.join("\n")}\n\nData murid tetap berhasil diimpor.`);
+        alert(`Impor selesai, namun ${guardianErrors.length} wali gagal disimpan:\n\n${guardianErrors.join("\n")}\n\nData murid tetap berhasil diimpor.`);
       }
 
       setStep(3);
@@ -320,42 +315,41 @@ alert(`Impor selesai, namun ${guardianErrors.length} wali gagal disimpan:\n\n${g
 
   return (
     <div className="max-w-6xl mx-auto pb-20">
-      {/* Header */}
       <header className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-2">
-             <Link href="/dashboard/students" className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-500">
+             <Link href="/dashboard/students" className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-slate-500 dark:text-slate-400">
                 <ChevronLeft className="w-5 h-5" />
              </Link>
-             <h1 className="text-3xl font-bold text-slate-800 tracking-tight">Impor Database Massal</h1>
+             <h1 className="text-3xl font-bold text-slate-800 dark:text-white tracking-tight">Impor Database Massal</h1>
           </div>
-          <p className="text-slate-500">Unggah file Excel untuk mendaftarkan murid dan wali sekaligus secara cerdas.</p>
+          <p className="text-slate-500 dark:text-slate-400">Unggah file Excel untuk mendaftarkan murid dan wali sekaligus secara cerdas.</p>
         </div>
       </header>
 
       {step === 1 && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm flex flex-col items-center justify-center text-center">
-             <div className="h-16 w-16 bg-green-50 rounded-2xl flex items-center justify-center text-[#1a7a4a] mb-6">
+          <div className="bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col items-center justify-center text-center">
+             <div className="h-16 w-16 bg-green-50 dark:bg-green-950/40 rounded-2xl flex items-center justify-center text-[#1a7a4a] dark:text-green-400 mb-6">
                 <Download className="w-8 h-8" />
              </div>
-             <h2 className="text-xl font-bold text-slate-800 mb-2">Unduh Template</h2>
-             <p className="text-slate-500 mb-8 max-w-sm">Gunakan template resmi kami agar format data Anda sesuai dengan standar sistem.</p>
+             <h2 className="text-xl font-bold text-slate-800 dark:text-white mb-2">Unduh Template</h2>
+             <p className="text-slate-500 dark:text-slate-400 mb-8 max-w-sm">Gunakan template resmi kami agar format data Anda sesuai dengan standar sistem.</p>
              <button
                  onClick={downloadTemplate}
-                 className="flex items-center gap-2 px-6 py-3 bg-white border-2 border-[#1a7a4a] text-[#1a7a4a] rounded-xl font-bold hover:bg-green-50 transition-all active:scale-95"
+                 className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-slate-800 border-2 border-[#1a7a4a] dark:border-green-700 text-[#1a7a4a] dark:text-green-400 rounded-xl font-bold hover:bg-green-50 dark:hover:bg-green-950/30 transition-all active:scale-95"
              >
                  <Download className="w-5 h-5" />
                  Download Template
              </button>
           </div>
 
-          <div className="bg-white p-8 rounded-3xl border-2 border-dashed border-slate-300 shadow-sm flex flex-col items-center justify-center text-center">
-             <div className="h-16 w-16 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 mb-6">
+          <div className="bg-white dark:bg-slate-900 p-8 rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-600 shadow-sm flex flex-col items-center justify-center text-center">
+             <div className="h-16 w-16 bg-blue-50 dark:bg-blue-950/40 rounded-2xl flex items-center justify-center text-blue-600 dark:text-blue-400 mb-6">
                 <FileUp className="w-8 h-8" />
              </div>
-             <h2 className="text-xl font-bold text-slate-800 mb-2">Upload File Excel</h2>
-             <p className="text-slate-500 mb-8 max-w-sm">Pastikan data Anda sudah sesuai dengan template yang diunduh.</p>
+             <h2 className="text-xl font-bold text-slate-800 dark:text-white mb-2">Upload File Excel</h2>
+             <p className="text-slate-500 dark:text-slate-400 mb-8 max-w-sm">Pastikan data Anda sudah sesuai dengan template yang diunduh.</p>
 
              <label className={`cursor-pointer group ${(isCheckingContext || !userId) ? 'opacity-50 pointer-events-none' : ''}`}>
                 <div className="px-8 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20 active:scale-95 flex items-center gap-2">
@@ -365,7 +359,7 @@ alert(`Impor selesai, namun ${guardianErrors.length} wali gagal disimpan:\n\n${g
                 <input type="file" className="hidden" accept=".xlsx, .xls" onChange={handleFileUpload} disabled={loading || isCheckingContext || !userId} />
              </label>
              {!isCheckingContext && !userId && (
-               <p className="text-rose-500 text-xs mt-3 font-medium flex items-center gap-1 justify-center">
+               <p className="text-rose-500 dark:text-rose-400 text-xs mt-3 font-medium flex items-center gap-1 justify-center">
                  <AlertCircle className="w-3 h-3" />
                  Anda tidak memiliki akses. Silakan login kembali.
                </p>
@@ -375,76 +369,74 @@ alert(`Impor selesai, namun ${guardianErrors.length} wali gagal disimpan:\n\n${g
       )}
 
       {step === 2 && (
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden animate-in fade-in duration-500">
-           {/* Stats Summary */}
-           <div className="p-8 border-b border-slate-100 bg-slate-50/50 grid grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="bg-white p-4 rounded-2xl border border-slate-200">
-                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total Data</p>
-                 <p className="text-2xl font-bold text-slate-800">{stats.total} Murid</p>
+        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden animate-in fade-in duration-500">
+           <div className="p-8 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50 grid grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-700">
+                 <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">Total Data</p>
+                 <p className="text-2xl font-bold text-slate-800 dark:text-white">{stats.total} Murid</p>
               </div>
-              <div className="bg-white p-4 rounded-2xl border border-slate-200">
-                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 text-blue-600">Terhubung Wali</p>
-                 <p className="text-2xl font-bold text-blue-600">{stats.linkedGuardians} <span className="text-xs font-medium text-slate-400">Existing</span></p>
+              <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-700">
+                 <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1 text-blue-600 dark:text-blue-400">Terhubung Wali</p>
+                 <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{stats.linkedGuardians} <span className="text-xs font-medium text-slate-400 dark:text-slate-500">Existing</span></p>
               </div>
-              <div className="bg-white p-4 rounded-2xl border border-slate-200">
-                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 text-[#1a7a4a]">Wali Baru Unik</p>
-                 <p className="text-2xl font-bold text-[#1a7a4a]">+{stats.uniqueNewGuardians}</p>
-                 <p className="text-[10px] text-slate-400 mt-0.5">{stats.newGuardians} baris data</p>
+              <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-700">
+                 <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1 text-[#1a7a4a] dark:text-green-400">Wali Baru Unik</p>
+                 <p className="text-2xl font-bold text-[#1a7a4a] dark:text-green-400">+{stats.uniqueNewGuardians}</p>
+                 <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">{stats.newGuardians} baris data</p>
               </div>
-              <div className="bg-white p-4 rounded-2xl border border-slate-200">
-                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 text-rose-600">Masalah Data</p>
-                 <p className="text-2xl font-bold text-rose-600">{stats.errors}</p>
+              <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-700">
+                 <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1 text-rose-600 dark:text-rose-400">Masalah Data</p>
+                 <p className="text-2xl font-bold text-rose-600 dark:text-rose-400">{stats.errors}</p>
               </div>
            </div>
 
-           {/* Table Preview */}
            <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                  <thead>
-                    <tr className="bg-slate-50">
-                       <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Status</th>
-                       <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Siswa</th>
-                       <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Kelas</th>
-                       <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Wali Murid</th>
-                       <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Hubungan</th>
+                    <tr className="bg-slate-50 dark:bg-slate-800/50">
+                       <th className="px-6 py-4 text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Status</th>
+                       <th className="px-6 py-4 text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Siswa</th>
+                       <th className="px-6 py-4 text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Kelas</th>
+                       <th className="px-6 py-4 text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Wali Murid</th>
+                       <th className="px-6 py-4 text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Hubungan</th>
                     </tr>
                  </thead>
-                 <tbody className="divide-y divide-slate-100">
+                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                     {data.map((row, idx) => (
-                       <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
+                       <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
                           <td className="px-6 py-4">
                              {row.status === "ready" ? (
-                                <div className="flex items-center gap-1.5 text-[#1a7a4a] font-bold text-xs">
+                                <div className="flex items-center gap-1.5 text-[#1a7a4a] dark:text-green-400 font-bold text-xs">
                                    <CheckCircle2 className="w-4 h-4" /> Ready
                                 </div>
                              ) : row.status === "error" ? (
-                                <div className="flex items-center gap-1.5 text-rose-600 font-bold text-xs" title={row.message}>
+                                <div className="flex items-center gap-1.5 text-rose-600 dark:text-rose-400 font-bold text-xs" title={row.message}>
                                    <AlertCircle className="w-4 h-4" /> Error
                                 </div>
                              ) : (
-                                <div className="flex items-center gap-1.5 text-amber-600 font-bold text-xs">
+                                <div className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400 font-bold text-xs">
                                    <AlertCircle className="w-4 h-4" /> Check
                                 </div>
                              )}
                           </td>
                           <td className="px-6 py-4">
-                             <p className="font-bold text-slate-800 text-sm uppercase">{row.nama_murid || "N/A"}</p>
-                             <p className="text-[10px] text-slate-400">NISN: {row.nisn || "-"}</p>
+                             <p className="font-bold text-slate-800 dark:text-white text-sm uppercase">{row.nama_murid || "N/A"}</p>
+                             <p className="text-[10px] text-slate-400 dark:text-slate-500">NISN: {row.nisn || "-"}</p>
                           </td>
                           <td className="px-6 py-4">
-                             <p className="text-sm font-medium text-slate-600">{row.unit} - {row.kelas}</p>
+                             <p className="text-sm font-medium text-slate-600 dark:text-slate-400">{row.unit} - {row.kelas}</p>
                           </td>
                           <td className="px-6 py-4">
-                             <p className="font-bold text-slate-800 text-sm uppercase">{row.nama_wali || "-"}</p>
+                             <p className="font-bold text-slate-800 dark:text-white text-sm uppercase">{row.nama_wali || "-"}</p>
                              <div className="flex items-center gap-2">
-                                <span className="text-[10px] text-slate-400">{row.kontak_wali || "-"}</span>
+                                <span className="text-[10px] text-slate-400 dark:text-slate-500">{row.kontak_wali || "-"}</span>
                                 {row.exists_guardian && (
-                                   <span className="text-[9px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-black uppercase">Existing</span>
+                                   <span className="text-[9px] bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 px-1.5 py-0.5 rounded font-black uppercase">Existing</span>
                                 )}
                              </div>
                           </td>
                           <td className="px-6 py-4">
-                             <span className="text-xs text-slate-500 font-medium">{row.hubungan_wali}</span>
+                             <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">{row.hubungan_wali}</span>
                           </td>
                        </tr>
                     ))}
@@ -452,12 +444,11 @@ alert(`Impor selesai, namun ${guardianErrors.length} wali gagal disimpan:\n\n${g
               </table>
            </div>
 
-           {/* Footer Action */}
-           <div className="p-8 bg-slate-50 flex items-center justify-between border-t border-slate-200">
+           <div className="p-8 bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between border-t border-slate-200 dark:border-slate-700">
               <button
                  onClick={() => setStep(1)}
-                 className="flex items-center gap-2 text-slate-500 font-bold hover:text-slate-800 transition-colors"
-                  disabled={loading}
+                 className="flex items-center gap-2 text-slate-500 dark:text-slate-400 font-bold hover:text-slate-800 dark:hover:text-white transition-colors"
+                 disabled={loading}
               >
                  <Trash2 className="w-5 h-5" />
                  Batalkan & Cari Berkas Lain
@@ -478,12 +469,12 @@ alert(`Impor selesai, namun ${guardianErrors.length} wali gagal disimpan:\n\n${g
       )}
 
       {step === 3 && (
-        <div className="bg-white p-12 rounded-3xl border border-slate-200 shadow-xl flex flex-col items-center justify-center text-center animate-in zoom-in-95 duration-500">
-           <div className="h-24 w-24 bg-green-100 rounded-full flex items-center justify-center text-[#1a7a4a] mb-8 animate-bounce">
+        <div className="bg-white dark:bg-slate-900 p-12 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-xl flex flex-col items-center justify-center text-center animate-in zoom-in-95 duration-500">
+           <div className="h-24 w-24 bg-green-100 dark:bg-green-950/40 rounded-full flex items-center justify-center text-[#1a7a4a] dark:text-green-400 mb-8 animate-bounce">
               <CheckCircle2 className="w-12 h-12" />
            </div>
-           <h2 className="text-3xl font-black text-slate-800 mb-4 uppercase">Impor Berhasil!</h2>
-           <p className="text-slate-500 mb-10 max-w-md text-lg">
+           <h2 className="text-3xl font-black text-slate-800 dark:text-white mb-4 uppercase">Impor Berhasil!</h2>
+           <p className="text-slate-500 dark:text-slate-400 mb-10 max-w-md text-lg">
               Selamat! Data {stats.total} murid dan wali telah berhasil ditambahkan ke dalam database sekolah Anda.
            </p>
            <div className="flex flex-col sm:flex-row gap-4">
@@ -495,7 +486,7 @@ alert(`Impor selesai, namun ${guardianErrors.length} wali gagal disimpan:\n\n${g
               </Link>
               <button
                  onClick={() => { setStep(1); setData([]); setFile(null); }}
-                 className="px-8 py-3.5 bg-white border border-slate-200 text-slate-600 rounded-2xl font-bold hover:bg-slate-50 transition-all"
+                 className="px-8 py-3.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-2xl font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all"
               >
                  Impor File Lagi
               </button>

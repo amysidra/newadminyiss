@@ -59,12 +59,10 @@ export default function BulkInvoicesPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Proteksi double-submit
         if (isSubmitted) return;
 
         const cleanAmount = formData.amount.replace(/\./g, '');
 
-        // Validasi nominal
         if (!cleanAmount || Number(cleanAmount) <= 0) {
             setStatus({ loading: false, error: 'Nominal harus lebih dari Rp 0', success: null });
             return;
@@ -122,21 +120,23 @@ export default function BulkInvoicesPage() {
         }
     };
 
+    const inputClass = "w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 focus:border-[#1a7a4a] focus:ring-4 focus:ring-green-500/10 transition-all duration-200 outline-none hover:border-green-300 placeholder-slate-400 dark:placeholder-slate-500";
+
     return (
         <div className="max-w-4xl mx-auto">
             <header className="mb-8">
                 <div className="flex items-center gap-3 mb-2">
-                    <div className="p-2 bg-green-50 rounded-lg text-[#1a7a4a]">
+                    <div className="p-2 bg-green-50 dark:bg-green-950/40 rounded-lg text-[#1a7a4a] dark:text-green-400">
                         <Users className="w-6 h-6" />
                     </div>
-                    <h1 className="text-3xl font-bold text-slate-800 tracking-tight">Buat Tagihan Massal</h1>
+                    <h1 className="text-3xl font-bold text-slate-800 dark:text-white tracking-tight">Buat Tagihan Massal</h1>
                 </div>
-                <p className="text-slate-500">Buat tagihan identik untuk SEMUA siswa aktif sekaligus.</p>
+                <p className="text-slate-500 dark:text-slate-400">Buat tagihan identik untuk SEMUA siswa aktif sekaligus.</p>
             </header>
 
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 md:p-8">
                 {status.success && (
-                    <div className="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-300">
+                    <div className="mb-6 p-4 bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 rounded-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-300">
                         <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                         </svg>
@@ -145,7 +145,7 @@ export default function BulkInvoicesPage() {
                 )}
 
                 {status.error && (
-                    <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-300">
+                    <div className="mb-6 p-4 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 rounded-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-300">
                         <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
@@ -153,9 +153,9 @@ export default function BulkInvoicesPage() {
                     </div>
                 )}
 
-                <div className="mb-8 p-4 bg-amber-50 border border-amber-200 rounded-xl">
-                    <h3 className="text-sm font-semibold text-amber-800 mb-1">Perhatian</h3>
-                    <p className="text-sm text-amber-700">
+                <div className="mb-8 p-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl">
+                    <h3 className="text-sm font-semibold text-amber-800 dark:text-amber-400 mb-1">Perhatian</h3>
+                    <p className="text-sm text-amber-700 dark:text-amber-500">
                         Tindakan ini akan membuat tagihan baru untuk <strong>{studentCount} siswa aktif</strong> {formData.unit ? `jenjang ${formData.unit}` : 'di semua jenjang'}.
                         Harap periksa kembali nominal dan keterangan sebelum melanjutkan.
                     </p>
@@ -164,16 +164,10 @@ export default function BulkInvoicesPage() {
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                            <label htmlFor="unit" className="block text-sm font-medium text-slate-700">
+                            <label htmlFor="unit" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                                 Jenjang (Level)
                             </label>
-                            <select
-                                id="unit"
-                                name="unit"
-                                value={formData.unit}
-                                onChange={handleChange}
-                                className="w-full px-4 py-3 rounded-xl bg-white border border-slate-300 text-slate-900 focus:border-[#1a7a4a] focus:ring-4 focus:ring-green-500/10 transition-all duration-200 outline-none hover:border-green-300"
-                            >
+                            <select id="unit" name="unit" value={formData.unit} onChange={handleChange} className={inputClass}>
                                 <option value="">Semua Jenjang</option>
                                 <option value="TK">TK</option>
                                 <option value="SD">SD</option>
@@ -183,11 +177,11 @@ export default function BulkInvoicesPage() {
                         </div>
 
                         <div className="space-y-2">
-                            <label htmlFor="due_date" className="block text-sm font-medium text-slate-700">
+                            <label htmlFor="due_date" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                                 Tenggat Waktu (Due Date)
                             </label>
                             <div className="relative">
-                                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 w-5 h-5" />
                                 <input
                                     type="date"
                                     id="due_date"
@@ -195,17 +189,17 @@ export default function BulkInvoicesPage() {
                                     value={formData.due_date}
                                     onChange={handleChange}
                                     required
-                                    className="w-full pl-12 pr-4 py-3 rounded-xl bg-white border border-slate-300 text-slate-900 focus:border-green-500 focus:ring-4 focus:ring-green-500/10 transition-all duration-200 outline-none hover:border-green-300"
+                                    className={`${inputClass} pl-12`}
                                 />
                             </div>
                         </div>
 
                         <div className="space-y-2">
-                            <label htmlFor="amount" className="block text-sm font-medium text-slate-700">
+                            <label htmlFor="amount" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                                 Nominal
                             </label>
                             <div className="relative">
-                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-medium">Rp</span>
+                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 font-medium">Rp</span>
                                 <input
                                     type="text"
                                     id="amount"
@@ -213,14 +207,14 @@ export default function BulkInvoicesPage() {
                                     value={formData.amount}
                                     onChange={handleAmountChange}
                                     required
-                                    className="w-full pl-12 pr-4 py-3 rounded-xl bg-white border border-slate-300 text-slate-900 focus:border-green-500 focus:ring-4 focus:ring-green-500/10 transition-all duration-200 outline-none hover:border-green-300 placeholder-slate-400"
+                                    className={`${inputClass} pl-12`}
                                     placeholder="Misal: 175.000"
                                 />
                             </div>
                         </div>
 
                         <div className="space-y-2">
-                            <label htmlFor="description" className="block text-sm font-medium text-slate-700">
+                            <label htmlFor="description" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                                 Keterangan
                             </label>
                             <input
@@ -230,7 +224,7 @@ export default function BulkInvoicesPage() {
                                 value={formData.description}
                                 onChange={handleChange}
                                 required
-                                className="w-full px-4 py-3 rounded-xl bg-white border border-slate-300 text-slate-900 focus:border-green-500 focus:ring-4 focus:ring-green-500/10 transition-all duration-200 outline-none hover:border-green-300 placeholder-slate-400"
+                                className={inputClass}
                                 placeholder="Misal: SPP Januari 2025"
                             />
                         </div>
