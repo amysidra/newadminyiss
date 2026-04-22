@@ -56,6 +56,7 @@ export default function StudentsPage() {
   const [guardians, setGuardians] = useState<Guardian[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [guardianSearch, setGuardianSearch] = useState("");
   const [newStudent, setNewStudent] = useState<Partial<Student>>({
     status: "Aktif",
     unit: "SMA",
@@ -133,6 +134,7 @@ export default function StudentsPage() {
       }
 
       setIsAddModalOpen(false);
+      setGuardianSearch("");
       setNewStudent({
         status: "Aktif",
         unit: "SMA",
@@ -407,18 +409,27 @@ export default function StudentsPage() {
 
                   <div className="space-y-1.5">
                     <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Wali Murid / Orang Tua</label>
-                    <select
+                    <input
+                      type="text"
+                      list="guardian-list"
+                      placeholder="Ketik nama wali murid..."
                       className={inputClass}
-                      value={newStudent.guardian_id}
-                      onChange={(e) => setNewStudent({ ...newStudent, guardian_id: e.target.value })}
-                    >
+                      value={guardianSearch}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setGuardianSearch(val);
+                        const matched = guardians.find(
+                          (g) => `${g.users?.first_name ?? ""} ${g.users?.last_name ?? ""}`.trim() === val
+                        );
+                        setNewStudent({ ...newStudent, guardian_id: matched?.id ?? "" });
+                      }}
+                    />
+                    <datalist id="guardian-list">
                       <option value="">-- Tidak ada --</option>
                       {guardians.map((g) => (
-                        <option key={g.id} value={g.id}>
-                          {`${g.users?.first_name ?? ""} ${g.users?.last_name ?? ""}`.trim()}
-                        </option>
+                        <option key={g.id} value={`${g.users?.first_name ?? ""} ${g.users?.last_name ?? ""}`.trim()} />
                       ))}
-                    </select>
+                    </datalist>
                   </div>
 
                   <div className="space-y-1.5">
