@@ -173,6 +173,7 @@ export default function BulkInvoicesPage() {
                                 <option value="SD">SD</option>
                                 <option value="SMP">SMP</option>
                                 <option value="SMA">SMA</option>
+                                <option value="LPI">LPI</option>
                             </select>
                         </div>
 

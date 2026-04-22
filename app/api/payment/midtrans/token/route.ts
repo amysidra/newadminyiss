@@ -63,7 +63,13 @@ export async function POST(request: NextRequest) {
           id: invoiceId,
           price: Number(invoice.amount),
           quantity: 1,
-          name: invoice.description.substring(0, 50),
+          name: (() => {
+            const studentName = invoice.students?.fullname
+            const raw = studentName
+              ? `${invoice.description} (${studentName})`
+              : invoice.description
+            return raw.substring(0, 50)
+          })(),
         },
       ],
       customer_details: {

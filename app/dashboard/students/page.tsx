@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import Link from "next/link";
 import {
   GraduationCap,
@@ -19,6 +19,7 @@ import {
   Loader2,
   AlertCircle,
   X,
+  XCircle,
   FileUp,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -57,6 +58,8 @@ export default function StudentsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [guardianSearch, setGuardianSearch] = useState("");
+  const [isGuardianDropdownOpen, setIsGuardianDropdownOpen] = useState(false);
+  const guardianDropdownRef = useRef<HTMLDivElement>(null);
   const [newStudent, setNewStudent] = useState<Partial<Student>>({
     status: "Aktif",
     unit: "SMA",
@@ -104,6 +107,20 @@ export default function StudentsPage() {
     };
 
     initData();
+  }, []);
+
+  const filteredGuardians = guardians.filter((g) =>
+    `${g.users?.first_name ?? ""} ${g.users?.last_name ?? ""}`.trim().toLowerCase().includes(guardianSearch.toLowerCase())
+  );
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (guardianDropdownRef.current && !guardianDropdownRef.current.contains(event.target as Node)) {
+        setIsGuardianDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const handleAddStudent = async (e: React.FormEvent) => {
@@ -407,29 +424,79 @@ export default function StudentsPage() {
                     />
                   </div>
 
-                  <div className="space-y-1.5">
+                  <div className="space-y-1.5 relative" ref={guardianDropdownRef}>
                     <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Wali Murid / Orang Tua</label>
-                    <input
-                      type="text"
-                      list="guardian-list"
-                      placeholder="Ketik nama wali murid..."
-                      className={inputClass}
-                      value={guardianSearch}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setGuardianSearch(val);
-                        const matched = guardians.find(
-                          (g) => `${g.users?.first_name ?? ""} ${g.users?.last_name ?? ""}`.trim() === val
-                        );
-                        setNewStudent({ ...newStudent, guardian_id: matched?.id ?? "" });
-                      }}
-                    />
-                    <datalist id="guardian-list">
-                      <option value="">-- Tidak ada --</option>
-                      {guardians.map((g) => (
-                        <option key={g.id} value={`${g.users?.first_name ?? ""} ${g.users?.last_name ?? ""}`.trim()} />
-                      ))}
-                    </datalist>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        placeholder="Ketik nama untuk mencari..."
+                        autoComplete="off"
+                        className={inputClass + " pr-10"}
+                        value={guardianSearch}
+                        onChange={(e) => {
+                          setGuardianSearch(e.target.value);
+                          setIsGuardianDropdownOpen(true);
+                          if (newStudent.guardian_id) setNewStudent({ ...newStudent, guardian_id: "" });
+                        }}
+                        onFocus={() => setIsGuardianDropdownOpen(true)}
+                      />
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500">
+                        {guardianSearch ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setGuardianSearch("");
+                              setNewStudent({ ...newStudent, guardian_id: "" });
+                              setIsGuardianDropdownOpen(true);
+                            }}
+                            className="hover:text-slate-600 dark:hover:text-slate-300 focus:outline-none"
+                          >
+                            <XCircle className="w-5 h-5" />
+                          </button>
+                        ) : (
+                          <Search className="w-5 h-5" />
+                        )}
+                      </div>
+                    </div>
+                    {isGuardianDropdownOpen && (
+                      <div className="absolute z-20 w-full mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl max-h-48 overflow-y-auto">
+                        <ul className="py-1">
+                          <li
+                            onClick={() => {
+                              setGuardianSearch("");
+                              setNewStudent({ ...newStudent, guardian_id: "" });
+                              setIsGuardianDropdownOpen(false);
+                            }}
+                            className="px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer text-slate-400 dark:text-slate-500 italic text-sm transition-colors"
+                          >
+                            -- Tidak ada --
+                          </li>
+                          {filteredGuardians.length > 0 ? filteredGuardians.map((g) => {
+                            const name = `${g.users?.first_name ?? ""} ${g.users?.last_name ?? ""}`.trim();
+                            return (
+                              <li
+                                key={g.id}
+                                onClick={() => {
+                                  setGuardianSearch(name);
+                                  setNewStudent({ ...newStudent, guardian_id: g.id });
+                                  setIsGuardianDropdownOpen(false);
+                                }}
+                                className="px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer text-slate-700 dark:text-slate-200 transition-colors flex items-center justify-between"
+                              >
+                                <span className="font-medium">{name}</span>
+                                {newStudent.guardian_id === g.id && (
+                                  <span className="text-green-600 dark:text-green-400 text-sm font-semibold">Dipilih</span>
+                                )}
+                              </li>
+                            );
+                          }) : (
+                            <li className="px-4 py-3 text-slate-400 dark:text-slate-500 text-center text-sm">
+                              Wali murid tidak ditemukan
+                            </li>
+                          )}
+                        </ul>
+                      </div>
+                    )}
                   </div>
 
                   <div className="space-y-1.5">
