@@ -59,9 +59,9 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
           return;
         }
 
-        // Wali murid tidak boleh masuk area admin
-        if (!["admin", "guru", "tendik"].includes(data.role)) {
-          router.replace("/portal");
+        // Hanya admin yang boleh masuk /dashboard
+        if (data.role !== "admin") {
+          router.replace("/unauthorized");
           return;
         }
 

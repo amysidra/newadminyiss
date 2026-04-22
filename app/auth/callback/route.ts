@@ -35,10 +35,19 @@ export async function GET(request: Request) {
     .eq('email', user.email!)
 
   const profiles = allProfiles ?? []
-  const authProfile  = profiles.find(p => p.id === user.id)           // dibuat trigger
-  const legacyProfile = profiles.find(p => p.id !== user.id)          // dibuat admin untuk guardian
+  const authProfile   = profiles.find(p => p.id === user.id)    // dibuat trigger (merge)
+  const legacyProfile = profiles.find(p => p.id !== user.id)    // dibuat admin sebelum user login
 
-  let finalRole = authProfile?.role ?? 'walimurid'
+  // Tidak ada profil sama sekali → user tidak terdaftar, tolak akses
+  if (profiles.length === 0) {
+    return NextResponse.redirect(`${origin}/unauthorized`)
+  }
+
+  let finalRole = authProfile?.role ?? legacyProfile?.role
+
+  if (!finalRole) {
+    return NextResponse.redirect(`${origin}/unauthorized`)
+  }
 
   if (legacyProfile) {
     // Merge: akun lama (random uuid) dengan akun Google (auth uuid)
@@ -76,6 +85,12 @@ export async function GET(request: Request) {
     await admin.from('users').delete().eq('id', legacyProfile.id)
   }
 
-  const destination = finalRole === 'walimurid' ? '/portal' : '/dashboard'
+  const ROLE_DESTINATIONS: Record<string, string> = {
+    admin:     '/dashboard',
+    walimurid: '/portal',
+    guru:      '/teacher',
+    tendik:    '/tendik',
+  }
+  const destination = ROLE_DESTINATIONS[finalRole] ?? '/unauthorized'
   return NextResponse.redirect(`${origin}${destination}`)
 }
