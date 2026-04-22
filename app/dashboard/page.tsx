@@ -11,7 +11,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <h1 className="mt-10 text-3xl font-bold text-slate-800 dark:text-white tracking-tight">
+      <h1 className="mt-10 text-3xl font-bold text-slate-800 dark:text-white tracking-tight text-center">
         Selamat Datang di Dashboard
       </h1>
 

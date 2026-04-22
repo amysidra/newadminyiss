@@ -253,6 +253,10 @@ function LoginPageInner() {
           </p>
 
           <div className="legal-links">
+            <a href="/about" className="legal-link">
+              About
+            </a>
+            <span className="legal-dot">•</span>
             <a href="/privacy" className="legal-link">
               Privacy Policy
             </a>

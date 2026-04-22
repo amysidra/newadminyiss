@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -29,6 +29,10 @@ export default function DashboardLayoutClient({
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const pathname = usePathname();
   const { theme } = useTheme();
+
+  useEffect(() => {
+    setIsSidebarOpen(false);
+  }, [pathname]);
 
   function getLinkClass(path: string) {
     return pathname === path
