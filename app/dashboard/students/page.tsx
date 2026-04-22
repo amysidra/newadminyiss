@@ -36,7 +36,7 @@ interface Student {
   nisn: string;
   fullname: string;
   grade: string;
-  unit: "TK" | "SD" | "SMP" | "SMA";
+  unit: "TK" | "SD" | "SMP" | "SMA" | "LPI";
   status: "Aktif" | "Lulus" | "Keluar";
   gender: "Laki-laki" | "Perempuan";
   avatar?: string;
