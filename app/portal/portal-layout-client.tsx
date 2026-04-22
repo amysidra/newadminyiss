@@ -14,6 +14,7 @@ import {
 import { PortalProvider } from "@/lib/context/PortalContext";
 import { PortalUserDropdown } from "@/components/portal/UserDropdown";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { useTheme } from "@/lib/context/ThemeContext";
 
 export default function PortalLayoutClient({
   children,
@@ -22,6 +23,7 @@ export default function PortalLayoutClient({
 }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const pathname = usePathname();
+  const { theme } = useTheme();
 
   function getLinkClass(path: string) {
     const active = pathname === path;
@@ -48,7 +50,7 @@ export default function PortalLayoutClient({
           <div className="h-16 flex items-center justify-between px-6 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
             <Link href="/portal" className="flex items-center gap-2">
               <img
-                src="/LogoYiss.png"
+                src={theme === "dark" ? "/LogoYissDark.png" : "/LogoYiss.png"}
                 alt="Logo YISS"
                 className="h-14 w-auto object-contain"
               />

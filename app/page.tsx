@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { useState, FormEvent, Suspense } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useTheme } from "@/lib/context/ThemeContext";
 
 function LoginPageInner() {
   const [email, setEmail] = useState("");
@@ -13,6 +14,7 @@ function LoginPageInner() {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [error, setError] = useState("");
   const searchParams = useSearchParams();
+  const { theme } = useTheme();
 
   if (searchParams.get("error") === "auth_failed") {
     // show error once on mount — set via state to keep reactivity
@@ -59,7 +61,7 @@ function LoginPageInner() {
       <div className="left-panel">
         <div className="brand">
           <Image
-            src="/LogoYiss.png"
+            src={theme === "dark" ? "/LogoYissDark.png" : "/LogoYiss.png"}
             alt="Logo YISS"
             width={140}
             height={56}
