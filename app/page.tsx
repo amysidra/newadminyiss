@@ -72,8 +72,8 @@ function LoginPageInner() {
 
         <div className="left-content">
           <h1 className="hero-heading">
-            Kelola Dengan <br />
-            <span className="hero-accent">Lebih Mudah.</span>
+            Portal Digital <br />
+            <span className="hero-accent">YISS Semarang</span>
           </h1>
           <p className="hero-desc">
             Portal Pendidikan Yayasan Islam Sahabat Sunnah — satu tempat untuk mengelola
