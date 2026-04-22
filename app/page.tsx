@@ -46,7 +46,10 @@ function LoginPageInner() {
     setError("");
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
       if (error) throw error;
       window.location.href = "/dashboard";
     } catch (err: unknown) {
@@ -257,10 +260,6 @@ function LoginPageInner() {
             <a href="/terms" className="legal-link">
               Terms of Service
             </a>
-            <span className="legal-dot">•</span>
-            <a href="/about" className="legal-link">
-              About
-            </a>
           </div>
         </div>
 
@@ -281,7 +280,6 @@ function LoginPageInner() {
           />
         </div>
       </div>
-
     </div>
   );
 }
