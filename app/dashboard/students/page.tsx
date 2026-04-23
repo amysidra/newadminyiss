@@ -3,19 +3,14 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import Link from "next/link";
 import {
-  GraduationCap,
   Search,
   Filter,
   MoreVertical,
   Plus,
   User,
-  BookOpen,
   Calendar,
   ChevronRight,
   ExternalLink,
-  ShieldCheck,
-  Building,
-  Heart,
   Loader2,
   AlertCircle,
   X,
@@ -23,6 +18,7 @@ import {
   FileUp,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { toTitleCase } from "@/lib/format";
 
 interface Guardian {
   id: string;
@@ -317,7 +313,7 @@ export default function StudentsPage() {
                       <div className={`h-16 w-16 rounded-2xl flex items-center justify-center text-2xl font-bold transition-all group-hover:scale-105 ${
                         student.gender === "Laki-laki" ? "bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400" : "bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400"
                       }`}>
-                        {student.fullname.charAt(0)}
+                        {toTitleCase(student.fullname).charAt(0)}
                       </div>
                       <div className={`absolute -bottom-1 -right-1 h-6 w-6 rounded-lg border-2 border-white dark:border-slate-900 flex items-center justify-center shadow-sm ${
                         student.unit === "TK"  ? "bg-rose-400" :
@@ -333,8 +329,8 @@ export default function StudentsPage() {
                   </div>
 
                   <div>
-                    <h3 className="font-bold text-slate-800 dark:text-white text-lg leading-tight group-hover:text-green-700 dark:group-hover:text-green-400 transition-colors uppercase">
-                      {student.fullname}
+                    <h3 className="font-bold text-slate-800 dark:text-white text-lg leading-tight group-hover:text-green-700 dark:group-hover:text-green-400 transition-colors">
+                      {toTitleCase(student.fullname)}
                     </h3>
                     <div className="flex items-center gap-2 mt-1">
                       <span className="text-xs font-medium text-slate-400 dark:text-slate-500">

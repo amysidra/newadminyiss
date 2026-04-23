@@ -1,13 +1,11 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import {
-  Building,
   Search,
   Filter,
   MoreVertical,
   Plus,
-  User,
   Briefcase,
   IdCard,
   ChevronRight,
@@ -21,6 +19,7 @@ import {
   Hammer
 } from "lucide-react";
 import { MaintenanceModal } from "@/components/admin/MaintenanceModal";
+import { toTitleCase } from "@/lib/format";
 
 interface Civitas {
   id: number;
@@ -251,7 +250,7 @@ export default function CivitasPage() {
                       <div className={`h-16 w-16 rounded-2xl flex items-center justify-center text-2xl font-bold transition-all group-hover:scale-105 ${
                         civitas.gender === "Laki-laki" ? "bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400" : "bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400"
                       }`}>
-                        {civitas.name.split(' ').pop()?.charAt(0) || civitas.name.charAt(0)}
+                        {toTitleCase(civitas.name).split(' ').pop()?.charAt(0) || toTitleCase(civitas.name).charAt(0)}
                       </div>
                       <div className={`absolute -bottom-1 -right-1 h-6 w-6 rounded-lg border-2 border-white dark:border-slate-900 flex items-center justify-center shadow-sm ${
                         civitas.role === "Guru" ? "bg-blue-500" : "bg-amber-500"
@@ -270,7 +269,7 @@ export default function CivitasPage() {
 
                   <div>
                     <h3 className="font-bold text-slate-800 dark:text-white text-lg leading-tight group-hover:text-green-700 dark:group-hover:text-green-400 transition-colors">
-                      {civitas.name}
+                      {toTitleCase(civitas.name)}
                     </h3>
                     <div className="flex items-center gap-2 mt-1">
                       <span className="text-xs font-medium text-slate-400 dark:text-slate-500">{civitas.role} • {civitas.unit}</span>

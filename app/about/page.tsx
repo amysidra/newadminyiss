@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ChevronLeft, BookOpen, Users, FileText, ShieldCheck, Smartphone } from "lucide-react";
@@ -36,7 +35,6 @@ const features = [
 export default function AboutPage() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-poppins text-slate-900 dark:text-slate-100">
-      {/* Header */}
       <div className="max-w-4xl mx-auto px-6 md:px-12 py-8">
         <Link
           href="/"
@@ -46,7 +44,6 @@ export default function AboutPage() {
           Kembali ke Login
         </Link>
 
-        {/* Hero */}
         <div className="text-center mb-16">
           <div className="flex justify-center mb-6">
             <Image
@@ -78,7 +75,6 @@ export default function AboutPage() {
           </p>
         </div>
 
-        {/* Tentang Aplikasi */}
         <section className="mb-14">
           <h2 className="text-2xl font-bold mb-4">Tentang Aplikasi</h2>
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 md:p-8 text-slate-700 dark:text-slate-300 leading-relaxed space-y-4">
@@ -103,7 +99,6 @@ export default function AboutPage() {
           </div>
         </section>
 
-        {/* Fitur Unggulan */}
         <section className="mb-14">
           <h2 className="text-2xl font-bold mb-6">Fitur Unggulan</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -128,7 +123,6 @@ export default function AboutPage() {
           </div>
         </section>
 
-        {/* Kontak */}
         <section className="mb-14">
           <h2 className="text-2xl font-bold mb-4">Kontak & Informasi</h2>
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 md:p-8 text-slate-700 dark:text-slate-300 space-y-2">
@@ -159,7 +153,6 @@ export default function AboutPage() {
           </div>
         </section>
 
-        {/* Footer */}
         <footer className="pt-8 border-t border-slate-200 dark:border-slate-800 text-center text-sm text-slate-500 space-y-3">
           <div className="flex justify-center gap-6">
             <Link href="/privacy" className="hover:text-[#1a7a4a] transition-colors">

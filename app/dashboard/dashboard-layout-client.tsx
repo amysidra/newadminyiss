@@ -43,7 +43,6 @@ export default function DashboardLayoutClient({
   return (
     <ProfileProvider>
       <div className="flex h-screen bg-[#f4f6f8] dark:bg-slate-950 font-poppins">
-        {/* Mobile sidebar backdrop */}
         {isSidebarOpen && (
           <div
             className="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm md:hidden"
@@ -51,13 +50,11 @@ export default function DashboardLayoutClient({
           />
         )}
 
-        {/* Sidebar */}
         <aside
           className={`fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col h-full overflow-y-auto transform transition-transform duration-200 ease-in-out md:static md:translate-x-0 ${
             isSidebarOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
-          {/* Logo */}
           <div className="h-16 flex items-center justify-between px-6 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
             <Link href="/dashboard" className="flex items-center gap-2">
               <img
@@ -74,7 +71,6 @@ export default function DashboardLayoutClient({
             </button>
           </div>
 
-          {/* Navigation */}
           <nav className="flex-1 px-4 py-6 space-y-8">
             <div>
               <h3 className="px-3 text-[10px] font-bold tracking-[0.1em] text-[#1a7a4a]/60 dark:text-green-500/50 uppercase mb-3">
@@ -163,9 +159,7 @@ export default function DashboardLayoutClient({
           </nav>
         </aside>
 
-        {/* Main Content */}
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-          {/* Top Header */}
           <header className="h-16 flex items-center justify-between md:justify-end px-4 md:px-8 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex-shrink-0">
             <div className="flex items-center md:hidden">
               <button
@@ -185,7 +179,6 @@ export default function DashboardLayoutClient({
             </div>
           </header>
 
-          {/* Page Content */}
           <main className="flex-1 overflow-y-auto p-4 md:p-8">{children}</main>
         </div>
       </div>

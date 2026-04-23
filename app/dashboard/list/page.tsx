@@ -1,11 +1,10 @@
 "use client";
 
-import React, { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   Search,
   CheckCircle2,
   Clock,
-  AlertCircle,
   Filter,
   CreditCard,
   Receipt,
@@ -17,6 +16,7 @@ import {
   Loader2
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { toTitleCase } from "@/lib/format";
 
 declare global {
   interface Window {
@@ -263,7 +263,7 @@ export default function InvoicesListPage() {
 
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden mb-8">
         <div className="p-4 md:p-6 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="flex items-center gap-1 p-1 bg-slate-50 dark:bg-slate-800 rounded-xl w-fit overflow-x-auto">
+          <div className="flex items-center gap-1 p-1 bg-slate-50 dark:bg-slate-800 rounded-xl w-full md:w-fit overflow-x-auto scrollbar-none">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
@@ -347,7 +347,7 @@ export default function InvoicesListPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1 text-sm">
                     <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 truncate">
                       <GraduationCap className="w-3.5 h-3.5" />
-                      <span className="font-semibold text-slate-700 dark:text-slate-300 truncate">{inv.student.fullname}</span>
+                      <span className="font-semibold text-slate-700 dark:text-slate-300 truncate">{toTitleCase(inv.student.fullname)}</span>
                       <span className="text-slate-300 dark:text-slate-600">|</span>
                       <span>{inv.student.grade} {inv.student.unit}</span>
                     </div>
@@ -400,7 +400,7 @@ export default function InvoicesListPage() {
               </div>
               <h3 className="text-xl font-bold text-slate-800 dark:text-white">Konfirmasi Pembayaran Cash</h3>
               <p className="text-slate-500 dark:text-slate-400 mt-2">
-                Anda akan menandai tagihan <span className="font-bold text-slate-700 dark:text-slate-300">"{invoiceToMark?.description}"</span> untuk siswa <span className="font-bold text-slate-700 dark:text-slate-300">{invoiceToMark?.student.fullname}</span> sebagai LUNAS.
+                Anda akan menandai tagihan <span className="font-bold text-slate-700 dark:text-slate-300">"{invoiceToMark?.description}"</span> untuk siswa <span className="font-bold text-slate-700 dark:text-slate-300">{invoiceToMark?.student.fullname ? toTitleCase(invoiceToMark.student.fullname) : ""}</span> sebagai LUNAS.
               </p>
             </div>
 

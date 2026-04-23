@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, XCircle } from "lucide-react";
 import { createClient } from '@/lib/supabase/client';
+import { toTitleCase } from "@/lib/format";
 
 interface Student {
     id: string;
@@ -203,7 +204,7 @@ export default function CreateInvoicePage() {
                                                     onClick={() => handleStudentSelect(student)}
                                                     className="px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer text-slate-700 dark:text-slate-200 transition-colors duration-150 flex items-center justify-between group"
                                                 >
-                                                    <span className="font-medium">{student.fullname}</span>
+                                                    <span className="font-medium">{toTitleCase(student.fullname)}</span>
                                                     {formData.student_id === student.id && (
                                                         <span className="text-green-600 dark:text-green-400 text-sm font-semibold">Dipilih</span>
                                                     )}

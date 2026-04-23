@@ -1,7 +1,12 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Bash(grep -c '<__TRACKED_VAR__\\\\b\\\\|{__TRACKED_VAR__}' app/dashboard/list/page.tsx)",
+      "Bash(grep -c '<__TRACKED_VAR__\\\\b\\\\|{__TRACKED_VAR__}' app/dashboard/guardians/page.tsx)",
+      "Bash(grep -c '<__TRACKED_VAR__\\\\b\\\\|{__TRACKED_VAR__}' app/about/page.tsx)",
+      "Bash(grep -c '<__TRACKED_VAR__\\\\b\\\\|{__TRACKED_VAR__}' app/portal/students/page.tsx)",
+      "Bash(grep -c '<__TRACKED_VAR__\\\\b\\\\|{__TRACKED_VAR__}' app/portal/invoices/page.tsx)"
     ]
   }
 }

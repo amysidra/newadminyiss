@@ -6,6 +6,7 @@ import {
   MoreVertical, ChevronRight, ExternalLink, Plus, Loader2, AlertCircle, X,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { toTitleCase } from "@/lib/format";
 
 interface Student { fullname: string; grade: string; unit: string }
 interface Guardian {
@@ -16,7 +17,7 @@ interface Guardian {
 }
 
 function fullName(g: Guardian) {
-  return `${g.users?.first_name ?? ""} ${g.users?.last_name ?? ""}`.trim();
+  return toTitleCase(`${g.users?.first_name ?? ""} ${g.users?.last_name ?? ""}`.trim());
 }
 
 const inputClass = "w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 outline-none focus:border-green-500 focus:ring-4 focus:ring-green-500/10 transition-all placeholder-slate-400 dark:placeholder-slate-500";
@@ -263,7 +264,7 @@ export default function GuardiansPage() {
                             <GraduationCap className="w-4 h-4" />
                           </div>
                           <div className="min-w-0">
-                            <p className="text-xs font-bold text-slate-800 dark:text-white leading-none truncate">{student.fullname}</p>
+                            <p className="text-xs font-bold text-slate-800 dark:text-white leading-none truncate">{toTitleCase(student.fullname)}</p>
                             <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 uppercase font-medium">{student.grade} {student.unit}</p>
                           </div>
                           <ChevronRight className="w-3 h-3 ml-auto text-slate-300 dark:text-slate-600 group-hover:text-green-400 transition-colors flex-shrink-0" />
@@ -279,7 +280,6 @@ export default function GuardiansPage() {
                   <button className="text-xs font-bold text-[#1a7a4a] dark:text-green-400 flex items-center gap-1.5 hover:underline">
                     <ExternalLink className="w-3.5 h-3.5" /> Detail Lengkap
                   </button>
-                  <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">ID: {guardian.id.substring(0, 8).toUpperCase()}</span>
                 </div>
               </div>
             ))}

@@ -1,8 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useSearchParams } from "next/navigation";
-import { useState, FormEvent, Suspense } from "react";
+import { useState, Suspense } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useTheme } from "@/lib/context/ThemeContext";
 import "./login.css";
@@ -14,12 +13,7 @@ function LoginPageInner() {
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [error, setError] = useState("");
-  const searchParams = useSearchParams();
   const { theme } = useTheme();
-
-  if (searchParams.get("error") === "auth_failed") {
-    // show error once on mount — set via state to keep reactivity
-  }
 
   const supabase = createClient();
 
@@ -41,7 +35,7 @@ function LoginPageInner() {
     }
   }
 
-  async function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: { preventDefault(): void }) {
     e.preventDefault();
     setError("");
     setIsLoading(true);
@@ -61,7 +55,6 @@ function LoginPageInner() {
 
   return (
     <div className="login-root">
-      {/* ── Left panel ── */}
       <div className="left-panel">
         <div className="brand">
           <Image
@@ -90,7 +83,6 @@ function LoginPageInner() {
         </footer>
       </div>
 
-      {/* ── Right panel ── */}
       <div className="right-panel">
         <div className="form-card">
           <div className="form-header">
@@ -98,7 +90,6 @@ function LoginPageInner() {
           </div>
           <p className="form-subtitle">Sign in to your account</p>
 
-          {/* Google SSO */}
           <button
             type="button"
             className="sso-btn"

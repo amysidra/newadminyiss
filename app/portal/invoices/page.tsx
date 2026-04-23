@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { usePortal } from "@/lib/context/PortalContext";
+import { toTitleCase } from "@/lib/format";
 
 declare global {
   interface Window { snap: any }
@@ -275,7 +276,7 @@ export default function PortalInvoicesPage() {
                     <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
                       <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
                         <GraduationCap className="w-3.5 h-3.5" />
-                        <span className="font-semibold text-slate-700 dark:text-slate-200">{inv.student.fullname}</span>
+                        <span className="font-semibold text-slate-700 dark:text-slate-200">{toTitleCase(inv.student.fullname)}</span>
                         <span className="text-slate-300 dark:text-slate-600">|</span>
                         <span>{inv.student.grade} {inv.student.unit}</span>
                       </div>

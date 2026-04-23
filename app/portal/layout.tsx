@@ -18,7 +18,6 @@ export async function generateMetadata(): Promise<Metadata> {
     .eq("id", user.id)
     .maybeSingle();
 
-  // Meskipun saat ini hanya walimurid yang masuk sini, kita tetap buat dinamis untuk fleksibilitas
   const roleLabel = profile?.role === "walimurid" ? "Wali Murid" : "";
   const displayTitle = roleLabel ? `Portal ${roleLabel} — YISS` : "Portal — YISS";
 

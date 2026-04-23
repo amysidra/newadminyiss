@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { GraduationCap, Loader2, User } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { usePortal } from "@/lib/context/PortalContext";
+import { toTitleCase } from "@/lib/format";
 
 interface Student {
   id: string;
@@ -84,7 +85,7 @@ export default function PortalStudentsPage() {
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 flex-wrap mb-2">
-                  <h3 className="font-bold text-slate-800 dark:text-white truncate">{student.fullname}</h3>
+                  <h3 className="font-bold text-slate-800 dark:text-white truncate">{toTitleCase(student.fullname)}</h3>
                   <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                     student.status === "Aktif" ? "bg-green-100 text-[#1a7a4a] dark:bg-green-950/40 dark:text-green-400" : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
                   }`}>
