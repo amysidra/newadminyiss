@@ -16,6 +16,11 @@ import {
   X,
   XCircle,
   FileUp,
+  GraduationCap,
+  Heart,
+  Building,
+  ShieldCheck,
+  BookOpen,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { toTitleCase } from "@/lib/format";
@@ -40,7 +45,8 @@ interface Student {
   guardian_id?: string;
 }
 
-const inputClass = "w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 outline-none focus:border-green-500 focus:ring-4 focus:ring-green-500/10 transition-all";
+const inputClass =
+  "w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 outline-none focus:border-green-500 focus:ring-4 focus:ring-green-500/10 transition-all";
 
 export default function StudentsPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -70,7 +76,9 @@ export default function StudentsPage() {
     const initData = async () => {
       try {
         setLoading(true);
-        const { data: { user } } = await supabase.auth.getUser();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
         if (!user) {
           setLoading(false);
           return;
@@ -106,12 +114,18 @@ export default function StudentsPage() {
   }, []);
 
   const filteredGuardians = guardians.filter((g) =>
-    `${g.users?.first_name ?? ""} ${g.users?.last_name ?? ""}`.trim().toLowerCase().includes(guardianSearch.toLowerCase())
+    `${g.users?.first_name ?? ""} ${g.users?.last_name ?? ""}`
+      .trim()
+      .toLowerCase()
+      .includes(guardianSearch.toLowerCase()),
   );
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (guardianDropdownRef.current && !guardianDropdownRef.current.contains(event.target as Node)) {
+      if (
+        guardianDropdownRef.current &&
+        !guardianDropdownRef.current.contains(event.target as Node)
+      ) {
         setIsGuardianDropdownOpen(false);
       }
     };
@@ -126,23 +140,27 @@ export default function StudentsPage() {
 
       const { data, error } = await supabase
         .from("students")
-        .insert([{
-          nisn: newStudent.nisn,
-          fullname: newStudent.fullname,
-          grade: newStudent.grade,
-          unit: newStudent.unit,
-          status: newStudent.status,
-          gender: newStudent.gender,
-          guardian_id: newStudent.guardian_id || null,
-          user_id: userId,
-        }])
+        .insert([
+          {
+            nisn: newStudent.nisn,
+            fullname: newStudent.fullname,
+            grade: newStudent.grade,
+            unit: newStudent.unit,
+            status: newStudent.status,
+            gender: newStudent.gender,
+            guardian_id: newStudent.guardian_id || null,
+            user_id: userId,
+          },
+        ])
         .select();
 
       if (error) throw error;
 
       if (data) {
         setStudents((prev) =>
-          [...prev, data[0]].sort((a, b) => a.fullname.localeCompare(b.fullname))
+          [...prev, data[0]].sort((a, b) =>
+            a.fullname.localeCompare(b.fullname),
+          ),
         );
       }
 
@@ -176,22 +194,28 @@ export default function StudentsPage() {
     });
   }, [searchQuery, selectedUnit, students]);
 
-  const stats = useMemo(() => ({
-    total: students.length,
-    tk:  students.filter((s) => s.unit === "TK").length,
-    sd:  students.filter((s) => s.unit === "SD").length,
-    smp: students.filter((s) => s.unit === "SMP").length,
-    sma: students.filter((s) => s.unit === "SMA").length,
-    lpi: students.filter((s) => s.unit === "LPI").length,
-  }), [students]);
+  const stats = useMemo(
+    () => ({
+      total: students.length,
+      tk: students.filter((s) => s.unit === "TK").length,
+      sd: students.filter((s) => s.unit === "SD").length,
+      smp: students.filter((s) => s.unit === "SMP").length,
+      sma: students.filter((s) => s.unit === "SMA").length,
+      lpi: students.filter((s) => s.unit === "LPI").length,
+    }),
+    [students],
+  );
 
   return (
     <div className="max-w-6xl mx-auto pb-20">
       <header className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-800 dark:text-white tracking-tight">Database Murid</h1>
+          <h1 className="text-3xl font-bold text-slate-800 dark:text-white tracking-tight">
+            Database Murid
+          </h1>
           <p className="mt-2 text-slate-500 dark:text-slate-400 text-sm md:text-base">
-            Kelola data induk siswa serta status akademik mereka secara terpusat.
+            Kelola data induk siswa serta status akademik mereka secara
+            terpusat.
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -214,19 +238,64 @@ export default function StudentsPage() {
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
         {[
-          { label: "Total Murid", value: stats.total, icon: GraduationCap, colorClass: "bg-green-50 dark:bg-green-950/40 text-green-600 dark:text-green-400 group-hover:bg-green-600 group-hover:text-white" },
-          { label: "Jenjang TK",  value: stats.tk,    icon: Heart,         colorClass: "bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 group-hover:bg-rose-600 group-hover:text-white" },
-          { label: "Jenjang SD",  value: stats.sd,    icon: Building,      colorClass: "bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 group-hover:bg-amber-600 group-hover:text-white" },
-          { label: "Jenjang SMP", value: stats.smp,   icon: ShieldCheck,   colorClass: "bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 group-hover:bg-blue-600 group-hover:text-white" },
-          { label: "Jenjang SMA", value: stats.sma,   icon: BookOpen,      colorClass: "bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 group-hover:bg-indigo-600 group-hover:text-white" },
-          { label: "Jenjang LPI", value: stats.lpi,   icon: GraduationCap, colorClass: "bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 group-hover:bg-purple-600 group-hover:text-white" },
+          {
+            label: "Total Murid",
+            value: stats.total,
+            icon: GraduationCap,
+            colorClass:
+              "bg-green-50 dark:bg-green-950/40 text-green-600 dark:text-green-400 group-hover:bg-green-600 group-hover:text-white",
+          },
+          {
+            label: "Jenjang TK",
+            value: stats.tk,
+            icon: Heart,
+            colorClass:
+              "bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 group-hover:bg-rose-600 group-hover:text-white",
+          },
+          {
+            label: "Jenjang SD",
+            value: stats.sd,
+            icon: Building,
+            colorClass:
+              "bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 group-hover:bg-amber-600 group-hover:text-white",
+          },
+          {
+            label: "Jenjang SMP",
+            value: stats.smp,
+            icon: ShieldCheck,
+            colorClass:
+              "bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 group-hover:bg-blue-600 group-hover:text-white",
+          },
+          {
+            label: "Jenjang SMA",
+            value: stats.sma,
+            icon: BookOpen,
+            colorClass:
+              "bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 group-hover:bg-indigo-600 group-hover:text-white",
+          },
+          {
+            label: "Jenjang LPI",
+            value: stats.lpi,
+            icon: GraduationCap,
+            colorClass:
+              "bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 group-hover:bg-purple-600 group-hover:text-white",
+          },
         ].map(({ label, value, icon: Icon, colorClass }) => (
-          <div key={label} className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm transition-all hover:shadow-md group">
-            <div className={`h-10 w-10 rounded-xl flex items-center justify-center mb-3 transition-colors ${colorClass}`}>
+          <div
+            key={label}
+            className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm transition-all hover:shadow-md group"
+          >
+            <div
+              className={`h-10 w-10 rounded-xl flex items-center justify-center mb-3 transition-colors ${colorClass}`}
+            >
               <Icon className="w-5 h-5" />
             </div>
-            <p className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">{label}</p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{value}</p>
+            <p className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+              {label}
+            </p>
+            <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">
+              {value}
+            </p>
           </div>
         ))}
       </div>
@@ -270,7 +339,9 @@ export default function StudentsPage() {
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-700">
             <Loader2 className="w-10 h-10 text-green-600 animate-spin mb-4" />
-            <p className="text-slate-500 dark:text-slate-400 font-medium">Memuat data murid...</p>
+            <p className="text-slate-500 dark:text-slate-400 font-medium">
+              Memuat data murid...
+            </p>
           </div>
         ) : error ? (
           <div className="flex flex-col items-center justify-center py-20 bg-red-50 dark:bg-red-950/20 rounded-3xl border border-red-200 dark:border-red-900 text-red-700 dark:text-red-400">
@@ -289,12 +360,18 @@ export default function StudentsPage() {
             <div className="h-16 w-16 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-300 dark:text-slate-600 mb-4">
               <Search className="w-8 h-8" />
             </div>
-            <h3 className="text-xl font-bold text-slate-800 dark:text-white">Murid tidak ditemukan</h3>
+            <h3 className="text-xl font-bold text-slate-800 dark:text-white">
+              Murid tidak ditemukan
+            </h3>
             <p className="text-slate-500 dark:text-slate-400 mt-1 max-w-xs text-center px-4">
-              Kami tidak dapat menemukan data murid dengan kata kunci atau filter tersebut.
+              Kami tidak dapat menemukan data murid dengan kata kunci atau
+              filter tersebut.
             </p>
             <button
-              onClick={() => { setSearchQuery(""); setSelectedUnit("All"); }}
+              onClick={() => {
+                setSearchQuery("");
+                setSelectedUnit("All");
+              }}
               className="mt-6 text-green-600 dark:text-green-400 font-bold hover:underline"
             >
               Reset semua filter
@@ -310,17 +387,29 @@ export default function StudentsPage() {
                 <div className="p-6">
                   <div className="flex items-start justify-between mb-5">
                     <div className="relative">
-                      <div className={`h-16 w-16 rounded-2xl flex items-center justify-center text-2xl font-bold transition-all group-hover:scale-105 ${
-                        student.gender === "Laki-laki" ? "bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400" : "bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400"
-                      }`}>
+                      <div
+                        className={`h-16 w-16 rounded-2xl flex items-center justify-center text-2xl font-bold transition-all group-hover:scale-105 ${
+                          student.gender === "Laki-laki"
+                            ? "bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400"
+                            : "bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400"
+                        }`}
+                      >
                         {toTitleCase(student.fullname).charAt(0)}
                       </div>
-                      <div className={`absolute -bottom-1 -right-1 h-6 w-6 rounded-lg border-2 border-white dark:border-slate-900 flex items-center justify-center shadow-sm ${
-                        student.unit === "TK"  ? "bg-rose-400" :
-                        student.unit === "SD"  ? "bg-amber-400" :
-                        student.unit === "SMP" ? "bg-blue-500" : "bg-indigo-600"
-                      }`}>
-                        <span className="text-[10px] font-black text-white">{student.unit}</span>
+                      <div
+                        className={`absolute -bottom-1 -right-1 h-6 w-6 rounded-lg border-2 border-white dark:border-slate-900 flex items-center justify-center shadow-sm ${
+                          student.unit === "TK"
+                            ? "bg-rose-400"
+                            : student.unit === "SD"
+                              ? "bg-amber-400"
+                              : student.unit === "SMP"
+                                ? "bg-blue-500"
+                                : "bg-indigo-600"
+                        }`}
+                      >
+                        <span className="text-[10px] font-black text-white">
+                          {student.unit}
+                        </span>
                       </div>
                     </div>
                     <button className="p-2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
@@ -337,11 +426,15 @@ export default function StudentsPage() {
                         NISN: {student.nisn || "-"}
                       </span>
                       <span className="h-1 w-1 rounded-full bg-slate-300 dark:bg-slate-600"></span>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                        student.status === "Aktif"  ? "bg-green-100 dark:bg-green-950/40 text-green-700 dark:text-green-400" :
-                        student.status === "Lulus"  ? "bg-blue-100 dark:bg-blue-950/40 text-blue-700 dark:text-blue-400" :
-                        "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
-                      }`}>
+                      <span
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                          student.status === "Aktif"
+                            ? "bg-green-100 dark:bg-green-950/40 text-green-700 dark:text-green-400"
+                            : student.status === "Lulus"
+                              ? "bg-blue-100 dark:bg-blue-950/40 text-blue-700 dark:text-blue-400"
+                              : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
+                        }`}
+                      >
                         {student.status}
                       </span>
                     </div>
@@ -353,7 +446,9 @@ export default function StudentsPage() {
                         <Calendar className="w-3 h-3" />
                         Kelas / Grade
                       </div>
-                      <p className="text-sm font-bold text-slate-700 dark:text-slate-300">{student.grade || "-"}</p>
+                      <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                        {student.grade || "-"}
+                      </p>
                     </div>
                     <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-xl border border-slate-100 dark:border-slate-700">
                       <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1">
@@ -361,7 +456,11 @@ export default function StudentsPage() {
                         Jenis Kelamin
                       </div>
                       <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
-                        {student.gender === "Laki-laki" ? "L" : student.gender === "Perempuan" ? "P" : "-"}
+                        {student.gender === "Laki-laki"
+                          ? "L"
+                          : student.gender === "Perempuan"
+                            ? "P"
+                            : "-"}
                       </p>
                     </div>
                   </div>
@@ -384,7 +483,9 @@ export default function StudentsPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
           <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] border border-slate-100 dark:border-slate-700">
             <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-slate-800">
-              <h2 className="text-xl font-bold text-slate-800 dark:text-white">Tambah Murid Baru</h2>
+              <h2 className="text-xl font-bold text-slate-800 dark:text-white">
+                Tambah Murid Baru
+              </h2>
               <button
                 onClick={() => setIsAddModalOpen(false)}
                 className="p-2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
@@ -394,34 +495,54 @@ export default function StudentsPage() {
             </div>
 
             <div className="p-6 overflow-y-auto w-full">
-              <form id="add-student-form" onSubmit={handleAddStudent} className="space-y-4">
+              <form
+                id="add-student-form"
+                onSubmit={handleAddStudent}
+                className="space-y-4"
+              >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300">NISN</label>
+                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                      NISN
+                    </label>
                     <input
                       type="text"
                       required
                       placeholder="Masukkan NISN"
                       className={inputClass}
                       value={newStudent.nisn}
-                      onChange={(e) => setNewStudent({ ...newStudent, nisn: e.target.value })}
+                      onChange={(e) =>
+                        setNewStudent({ ...newStudent, nisn: e.target.value })
+                      }
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Nama Lengkap</label>
+                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                      Nama Lengkap
+                    </label>
                     <input
                       type="text"
                       required
                       placeholder="Masukkan nama lengkap"
                       className={inputClass}
                       value={newStudent.fullname}
-                      onChange={(e) => setNewStudent({ ...newStudent, fullname: e.target.value })}
+                      onChange={(e) =>
+                        setNewStudent({
+                          ...newStudent,
+                          fullname: e.target.value,
+                        })
+                      }
                     />
                   </div>
 
-                  <div className="space-y-1.5 relative" ref={guardianDropdownRef}>
-                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Wali Murid / Orang Tua</label>
+                  <div
+                    className="space-y-1.5 relative"
+                    ref={guardianDropdownRef}
+                  >
+                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                      Wali Murid / Orang Tua
+                    </label>
                     <div className="relative">
                       <input
                         type="text"
@@ -432,7 +553,8 @@ export default function StudentsPage() {
                         onChange={(e) => {
                           setGuardianSearch(e.target.value);
                           setIsGuardianDropdownOpen(true);
-                          if (newStudent.guardian_id) setNewStudent({ ...newStudent, guardian_id: "" });
+                          if (newStudent.guardian_id)
+                            setNewStudent({ ...newStudent, guardian_id: "" });
                         }}
                         onFocus={() => setIsGuardianDropdownOpen(true)}
                       />
@@ -467,25 +589,33 @@ export default function StudentsPage() {
                           >
                             -- Tidak ada --
                           </li>
-                          {filteredGuardians.length > 0 ? filteredGuardians.map((g) => {
-                            const name = `${g.users?.first_name ?? ""} ${g.users?.last_name ?? ""}`.trim();
-                            return (
-                              <li
-                                key={g.id}
-                                onClick={() => {
-                                  setGuardianSearch(name);
-                                  setNewStudent({ ...newStudent, guardian_id: g.id });
-                                  setIsGuardianDropdownOpen(false);
-                                }}
-                                className="px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer text-slate-700 dark:text-slate-200 transition-colors flex items-center justify-between"
-                              >
-                                <span className="font-medium">{name}</span>
-                                {newStudent.guardian_id === g.id && (
-                                  <span className="text-green-600 dark:text-green-400 text-sm font-semibold">Dipilih</span>
-                                )}
-                              </li>
-                            );
-                          }) : (
+                          {filteredGuardians.length > 0 ? (
+                            filteredGuardians.map((g) => {
+                              const name =
+                                `${g.users?.first_name ?? ""} ${g.users?.last_name ?? ""}`.trim();
+                              return (
+                                <li
+                                  key={g.id}
+                                  onClick={() => {
+                                    setGuardianSearch(name);
+                                    setNewStudent({
+                                      ...newStudent,
+                                      guardian_id: g.id,
+                                    });
+                                    setIsGuardianDropdownOpen(false);
+                                  }}
+                                  className="px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer text-slate-700 dark:text-slate-200 transition-colors flex items-center justify-between"
+                                >
+                                  <span className="font-medium">{name}</span>
+                                  {newStudent.guardian_id === g.id && (
+                                    <span className="text-green-600 dark:text-green-400 text-sm font-semibold">
+                                      Dipilih
+                                    </span>
+                                  )}
+                                </li>
+                              );
+                            })
+                          ) : (
                             <li className="px-4 py-3 text-slate-400 dark:text-slate-500 text-center text-sm">
                               Wali murid tidak ditemukan
                             </li>
@@ -496,23 +626,34 @@ export default function StudentsPage() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Kelas</label>
+                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                      Kelas
+                    </label>
                     <input
                       type="text"
                       required
                       placeholder="Contoh: 10A"
                       className={inputClass}
                       value={newStudent.grade}
-                      onChange={(e) => setNewStudent({ ...newStudent, grade: e.target.value })}
+                      onChange={(e) =>
+                        setNewStudent({ ...newStudent, grade: e.target.value })
+                      }
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Jenjang Pendidikan</label>
+                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                      Jenjang Pendidikan
+                    </label>
                     <select
                       className={inputClass}
                       value={newStudent.unit}
-                      onChange={(e) => setNewStudent({ ...newStudent, unit: e.target.value as any })}
+                      onChange={(e) =>
+                        setNewStudent({
+                          ...newStudent,
+                          unit: e.target.value as any,
+                        })
+                      }
                     >
                       <option value="TK">TK</option>
                       <option value="SD">SD</option>
@@ -523,11 +664,18 @@ export default function StudentsPage() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Jenis Kelamin</label>
+                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                      Jenis Kelamin
+                    </label>
                     <select
                       className={inputClass}
                       value={newStudent.gender}
-                      onChange={(e) => setNewStudent({ ...newStudent, gender: e.target.value as any })}
+                      onChange={(e) =>
+                        setNewStudent({
+                          ...newStudent,
+                          gender: e.target.value as any,
+                        })
+                      }
                     >
                       <option value="Laki-laki">Laki-laki</option>
                       <option value="Perempuan">Perempuan</option>
@@ -535,11 +683,18 @@ export default function StudentsPage() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Status</label>
+                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                      Status
+                    </label>
                     <select
                       className={inputClass}
                       value={newStudent.status}
-                      onChange={(e) => setNewStudent({ ...newStudent, status: e.target.value as any })}
+                      onChange={(e) =>
+                        setNewStudent({
+                          ...newStudent,
+                          status: e.target.value as any,
+                        })
+                      }
                     >
                       <option value="Aktif">Aktif</option>
                       <option value="Lulus">Lulus</option>
