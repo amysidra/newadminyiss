@@ -35,6 +35,13 @@ function LoginPageInner() {
     }
   }
 
+  const ROLE_DESTINATIONS: Record<string, string> = {
+    admin:     "/dashboard",
+    walimurid: "/portal",
+    guru:      "/teacher",
+    tendik:    "/tendik",
+  };
+
   async function handleSubmit(e: { preventDefault(): void }) {
     e.preventDefault();
     setError("");
@@ -45,7 +52,16 @@ function LoginPageInner() {
         password,
       });
       if (error) throw error;
-      window.location.href = "/dashboard";
+
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data: profile } = user
+        ? await supabase.from("users").select("role").eq("id", user.id).maybeSingle()
+        : { data: null };
+
+      const destination = profile?.role
+        ? (ROLE_DESTINATIONS[profile.role] ?? "/unauthorized")
+        : "/dashboard";
+      window.location.href = destination;
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Login gagal. Coba lagi.");
     } finally {
