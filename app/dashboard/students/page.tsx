@@ -508,7 +508,7 @@ export default function StudentsPage() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Unit Pendidikan</label>
+                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Jenjang Pendidikan</label>
                     <select
                       className={inputClass}
                       value={newStudent.unit}
@@ -518,6 +518,7 @@ export default function StudentsPage() {
                       <option value="SD">SD</option>
                       <option value="SMP">SMP</option>
                       <option value="SMA">SMA</option>
+                      <option value="LPI">LPI</option>
                     </select>
                   </div>
 
