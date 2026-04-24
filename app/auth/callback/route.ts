@@ -1,8 +1,9 @@
-import { createClient } from '@/lib/supabase/server'
+import { createServerClient } from '@supabase/ssr'
 import { createClient as createAdminClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
 
@@ -10,7 +11,26 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${origin}/?error=auth_failed`)
   }
 
-  const supabase = await createClient()
+  // Buffer cookies yang di-set saat exchangeCodeForSession agar bisa ditempel ke redirect response.
+  // Ini wajib di Netlify karena route handler (Lambda) dan middleware (Edge) adalah proses terpisah —
+  // cookies dari Next.js cookie store tidak otomatis masuk ke NextResponse.redirect().
+  const cookieBuffer: Array<{ name: string; value: string; options: Record<string, unknown> }> = []
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll()
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(c => cookieBuffer.push(c))
+        },
+      },
+    }
+  )
+
   const { error } = await supabase.auth.exchangeCodeForSession(code)
 
   if (error) {
@@ -40,13 +60,17 @@ export async function GET(request: Request) {
 
   // Tidak ada profil sama sekali → user tidak terdaftar, tolak akses
   if (profiles.length === 0) {
-    return NextResponse.redirect(`${origin}/unauthorized`)
+    const res = NextResponse.redirect(`${origin}/unauthorized`)
+    cookieBuffer.forEach(({ name, value, options }) => res.cookies.set(name, value, options))
+    return res
   }
 
   let finalRole = authProfile?.role ?? legacyProfile?.role
 
   if (!finalRole) {
-    return NextResponse.redirect(`${origin}/unauthorized`)
+    const res = NextResponse.redirect(`${origin}/unauthorized`)
+    cookieBuffer.forEach(({ name, value, options }) => res.cookies.set(name, value, options))
+    return res
   }
 
   if (legacyProfile) {
@@ -92,5 +116,9 @@ export async function GET(request: Request) {
     tendik:    '/tendik',
   }
   const destination = ROLE_DESTINATIONS[finalRole] ?? '/unauthorized'
-  return NextResponse.redirect(`${origin}${destination}`)
+
+  const response = NextResponse.redirect(`${origin}${destination}`)
+  // Tempel session cookies ke redirect response agar browser langsung terautentikasi
+  cookieBuffer.forEach(({ name, value, options }) => response.cookies.set(name, value, options))
+  return response
 }
