@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { UserCircle, Mail, Lock, Pencil, X, Save, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { UserCircle, Mail, Lock, Pencil, X, Save, Loader2, CheckCircle2, AlertCircle, Eye, EyeOff } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { usePortal } from "@/lib/context/PortalContext";
 
@@ -14,6 +14,7 @@ export default function PortalSettingsPage() {
   const { profile } = usePortal();
 
   const [isEditing, setIsEditing] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -88,6 +89,7 @@ export default function PortalSettingsPage() {
 
       setFormData({ ...editData, password: "" });
       setIsEditing(false);
+      setShowPassword(false);
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 3000);
     } catch (err: any) {
@@ -198,7 +200,22 @@ export default function PortalSettingsPage() {
               {isEditing ? (
                 <div className="relative group">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <input type="password" name="password" value={editData.password} onChange={handleChange} className={inputClass} placeholder="Biarkan kosong jika tidak ingin mengubah" />
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    value={editData.password}
+                    onChange={handleChange}
+                    className={`${inputClass} pr-12`}
+                    placeholder="Biarkan kosong jika tidak ingin mengubah"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(v => !v)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#1a7a4a] dark:hover:text-green-400 transition-colors"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
               ) : (
                 <div className={displayFieldClass}>
@@ -223,7 +240,7 @@ export default function PortalSettingsPage() {
               </button>
             ) : (
               <>
-                <button onClick={() => { setIsEditing(false); setError(null); }} disabled={saving}
+                <button onClick={() => { setIsEditing(false); setShowPassword(false); setError(null); }} disabled={saving}
                   className="flex items-center gap-2.5 px-8 py-3.5 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all disabled:opacity-50">
                   <X className="w-4 h-4" /> Batal
                 </button>

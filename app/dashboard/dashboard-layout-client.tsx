@@ -87,7 +87,7 @@ export default function DashboardLayoutClient({
                   className={getLinkClass("/dashboard/settings")}
                 >
                   <Settings className="w-4 h-4 mr-3" />
-                  Settings
+                  Pengaturan
                 </Link>
               </div>
             </div>

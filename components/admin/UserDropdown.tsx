@@ -100,7 +100,7 @@ export function UserDropdown() {
               <div className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover/item:bg-green-100 dark:group-hover/item:bg-green-950 transition-colors">
                 <Settings className="w-4 h-4 text-slate-600 dark:text-slate-400 group-hover/item:text-[#1a7a4a] dark:group-hover/item:text-green-400" />
               </div>
-              Settings
+              Pengaturan
             </Link>
 
             <div className="h-px bg-slate-100 dark:bg-slate-800 my-1 mx-2" />
