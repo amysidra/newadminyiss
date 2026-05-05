@@ -15,6 +15,7 @@ import {
   X,
   FileUp,
   LayoutDashboard,
+  Tag,
 } from "lucide-react";
 import { UserDropdown } from "@/components/admin/UserDropdown";
 import { ProfileProvider } from "@/lib/context/ProfileContext";
@@ -153,6 +154,13 @@ export default function DashboardLayoutClient({
                 >
                   <Building className="w-4 h-4 mr-3" />
                   Civitas
+                </Link>
+                <Link
+                  href="/dashboard/spp-categories"
+                  className={getLinkClass("/dashboard/spp-categories")}
+                >
+                  <Tag className="w-4 h-4 mr-3" />
+                  Kategori SPP
                 </Link>
               </div>
             </div>

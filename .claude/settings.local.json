@@ -6,7 +6,10 @@
       "Bash(grep -c '<__TRACKED_VAR__\\\\b\\\\|{__TRACKED_VAR__}' app/dashboard/guardians/page.tsx)",
       "Bash(grep -c '<__TRACKED_VAR__\\\\b\\\\|{__TRACKED_VAR__}' app/about/page.tsx)",
       "Bash(grep -c '<__TRACKED_VAR__\\\\b\\\\|{__TRACKED_VAR__}' app/portal/students/page.tsx)",
-      "Bash(grep -c '<__TRACKED_VAR__\\\\b\\\\|{__TRACKED_VAR__}' app/portal/invoices/page.tsx)"
+      "Bash(grep -c '<__TRACKED_VAR__\\\\b\\\\|{__TRACKED_VAR__}' app/portal/invoices/page.tsx)",
+      "Bash(Get-ChildItem -Path . -Force)",
+      "Bash(Select-Object Name, Mode)",
+      "PowerShell(head -30)"
     ]
   }
 }

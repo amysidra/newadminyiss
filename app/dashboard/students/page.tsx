@@ -21,6 +21,7 @@ import {
   Building,
   ShieldCheck,
   BookOpen,
+  Tag,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { toTitleCase } from "@/lib/format";
@@ -33,6 +34,12 @@ interface Guardian {
   };
 }
 
+interface SppCategory {
+  id: string;
+  name: string;
+  amount: number;
+}
+
 interface Student {
   id: string;
   nisn: string;
@@ -43,6 +50,8 @@ interface Student {
   gender: "Laki-laki" | "Perempuan";
   avatar?: string;
   guardian_id?: string;
+  spp_category_id?: string;
+  spp_category?: SppCategory | null;
 }
 
 const inputClass =
@@ -57,6 +66,7 @@ export default function StudentsPage() {
   const supabase = createClient();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [guardians, setGuardians] = useState<Guardian[]>([]);
+  const [sppCategories, setSppCategories] = useState<SppCategory[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [guardianSearch, setGuardianSearch] = useState("");
@@ -70,6 +80,7 @@ export default function StudentsPage() {
     fullname: "",
     grade: "",
     guardian_id: "",
+    spp_category_id: "",
   });
 
   useEffect(() => {
@@ -86,22 +97,28 @@ export default function StudentsPage() {
 
         setUserId(user.id);
 
-        const [studentsRes, guardiansRes] = await Promise.all([
+        const [studentsRes, guardiansRes, categoriesRes] = await Promise.all([
           supabase
             .from("students")
-            .select("*")
+            .select("*, spp_category:spp_categories!spp_category_id(id, name, amount)")
             .order("fullname", { ascending: true }),
           supabase
             .from("guardians")
             .select("id, users!user_id ( first_name, last_name )")
             .order("created_at", { ascending: true }),
+          supabase
+            .from("spp_categories")
+            .select("id, name, amount")
+            .order("name", { ascending: true }),
         ]);
 
         if (studentsRes.error) throw studentsRes.error;
         if (guardiansRes.error) throw guardiansRes.error;
+        if (categoriesRes.error) throw categoriesRes.error;
 
         setStudents(studentsRes.data || []);
         setGuardians((guardiansRes.data || []) as unknown as Guardian[]);
+        setSppCategories(categoriesRes.data || []);
       } catch (err: any) {
         console.error("Error fetching data:", err);
         setError(err.message || "Gagal memuat data.");
@@ -149,10 +166,11 @@ export default function StudentsPage() {
             status: newStudent.status,
             gender: newStudent.gender,
             guardian_id: newStudent.guardian_id || null,
+            spp_category_id: newStudent.spp_category_id || null,
             user_id: userId,
           },
         ])
-        .select();
+        .select("*, spp_category:spp_categories!spp_category_id(id, name, amount)");
 
       if (error) throw error;
 
@@ -174,6 +192,7 @@ export default function StudentsPage() {
         fullname: "",
         grade: "",
         guardian_id: "",
+        spp_category_id: "",
       });
     } catch (err: any) {
       console.error("Error adding student:", err);
@@ -438,6 +457,15 @@ export default function StudentsPage() {
                         {student.status}
                       </span>
                     </div>
+                    {student.spp_category && (
+                      <div className="flex items-center gap-1.5 mt-1.5">
+                        <Tag className="w-3 h-3 text-green-500 dark:text-green-400 flex-shrink-0" />
+                        <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                          SPP {student.spp_category.name} &middot; Rp{" "}
+                          {student.spp_category.amount.toLocaleString("id-ID")}
+                        </span>
+                      </div>
+                    )}
                   </div>
 
                   <div className="mt-6 grid grid-cols-2 gap-4">
@@ -700,6 +728,41 @@ export default function StudentsPage() {
                       <option value="Lulus">Lulus</option>
                       <option value="Keluar">Keluar</option>
                     </select>
+                  </div>
+
+                  <div className="space-y-1.5 md:col-span-2">
+                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                      Kategori SPP
+                    </label>
+                    <select
+                      className={inputClass}
+                      value={newStudent.spp_category_id ?? ""}
+                      onChange={(e) =>
+                        setNewStudent({
+                          ...newStudent,
+                          spp_category_id: e.target.value || "",
+                        })
+                      }
+                    >
+                      <option value="">-- Tidak ada --</option>
+                      {sppCategories.map((cat) => (
+                        <option key={cat.id} value={cat.id}>
+                          {cat.name} — Rp {cat.amount.toLocaleString("id-ID")}
+                        </option>
+                      ))}
+                    </select>
+                    {sppCategories.length === 0 && (
+                      <p className="text-xs text-amber-600 dark:text-amber-400">
+                        Belum ada kategori SPP.{" "}
+                        <a
+                          href="/dashboard/spp-categories"
+                          className="underline font-semibold"
+                          target="_blank"
+                        >
+                          Buat kategori dulu
+                        </a>
+                      </p>
+                    )}
                   </div>
                 </div>
               </form>
