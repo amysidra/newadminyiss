@@ -2,7 +2,7 @@ import type { Config } from "@netlify/functions";
 
 // Jadwal: setiap hari pukul 00:00 WIB = 17:00 UTC
 export const config: Config = {
-  schedule: "10 3 * * *",
+  schedule: "0 17 * * *",
 };
 
 export default async (): Promise<void> => {
