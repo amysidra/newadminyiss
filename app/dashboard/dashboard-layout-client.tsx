@@ -17,6 +17,7 @@ import {
   LayoutDashboard,
   Tag,
   ListChecks,
+  CalendarClock,
 } from "lucide-react";
 import { UserDropdown } from "@/components/admin/UserDropdown";
 import { ProfileProvider } from "@/lib/context/ProfileContext";
@@ -169,6 +170,21 @@ export default function DashboardLayoutClient({
                 >
                   <ListChecks className="w-4 h-4 mr-3" />
                   Atur Kategori Murid
+                </Link>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="px-3 text-[10px] font-bold tracking-[0.1em] text-[#1a7a4a]/60 dark:text-green-500/50 uppercase mb-3">
+                OTOMASI
+              </h3>
+              <div className="space-y-1">
+                <Link
+                  href="/dashboard/cron-jobs"
+                  className={getLinkClass("/dashboard/cron-jobs")}
+                >
+                  <CalendarClock className="w-4 h-4 mr-3" />
+                  Jadwal Tagihan
                 </Link>
               </div>
             </div>

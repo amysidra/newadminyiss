@@ -9,7 +9,8 @@
       "Bash(grep -c '<__TRACKED_VAR__\\\\b\\\\|{__TRACKED_VAR__}' app/portal/invoices/page.tsx)",
       "Bash(Get-ChildItem -Path . -Force)",
       "Bash(Select-Object Name, Mode)",
-      "PowerShell(head -30)"
+      "PowerShell(head -30)",
+      "Bash(pnpm add *)"
     ]
   }
 }
