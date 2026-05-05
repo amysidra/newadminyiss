@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { sendInvoiceEmail, type InvoiceLineItem, type EmailResult } from '@/lib/email'
 
 export const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -38,13 +39,66 @@ export interface JobResult {
   message: string
 }
 
+// ── Types for nested Supabase query ───────────────────────────
+
+interface SppCategory {
+  amount: number
+}
+
+interface GuardianUser {
+  first_name: string | null
+  last_name: string | null
+  email: string | null
+}
+
+interface StudentGuardian {
+  email: string | null
+  user: GuardianUser | null
+}
+
+interface StudentRow {
+  id: string
+  fullname: string
+  guardian_id: string | null
+  spp_category: SppCategory
+  guardian: StudentGuardian | null
+}
+
+function resolveGuardianEmail(guardian: StudentGuardian | null): string | null {
+  if (!guardian) return null
+  return guardian.user?.email ?? guardian.email ?? null
+}
+
+function resolveGuardianName(guardian: StudentGuardian | null): string {
+  const user = guardian?.user
+  const first = user?.first_name ?? ''
+  const last = user?.last_name ?? ''
+  const fullName = `${first} ${last}`.trim()
+  return fullName || 'Wali Murid'
+}
+
+// ──────────────────────────────────────────────────────────────
+
 export async function executeJob(job: CronJobRow): Promise<JobResult> {
   const now = getWIBDate()
 
   try {
     const { data: students, error: studentsError } = await supabaseAdmin
       .from('students')
-      .select('id, spp_category:spp_categories!spp_category_id(amount)')
+      .select(`
+        id,
+        fullname,
+        guardian_id,
+        spp_category:spp_categories!spp_category_id(amount),
+        guardian:guardians!guardian_id(
+          email,
+          user:users!user_id(
+            first_name,
+            last_name,
+            email
+          )
+        )
+      `)
       .eq('status', 'Aktif')
       .not('spp_category_id', 'is', null)
 
@@ -71,7 +125,9 @@ export async function executeJob(job: CronJobRow): Promise<JobResult> {
       now.getTime() + job.due_date_offset_days * 24 * 60 * 60 * 1000
     )
 
-    const invoices = (students as any[]).map((s) => ({
+    const typedStudents = students as unknown as StudentRow[]
+
+    const invoices = typedStudents.map((s) => ({
       student_id: s.id,
       description,
       amount: s.spp_category.amount,
@@ -85,7 +141,61 @@ export async function executeJob(job: CronJobRow): Promise<JobResult> {
 
     if (insertError) throw insertError
 
-    const message = `${invoices.length} invoice berhasil dibuat`
+    // ── Kirim email notifikasi ke wali murid ───────────────────
+
+    const guardianMap = new Map<string, { guardianName: string; items: InvoiceLineItem[] }>()
+
+    for (const student of typedStudents) {
+      const email = resolveGuardianEmail(student.guardian)
+      if (!email) continue
+
+      const name = resolveGuardianName(student.guardian)
+      const lineItem: InvoiceLineItem = {
+        studentName: student.fullname,
+        description,
+        amount: student.spp_category.amount,
+        dueDate: dueDate.toISOString(),
+      }
+
+      const existing = guardianMap.get(email)
+      if (existing) {
+        existing.items.push(lineItem)
+      } else {
+        guardianMap.set(email, { guardianName: name, items: [lineItem] })
+      }
+    }
+
+    const emailResults = await Promise.allSettled(
+      [...guardianMap.entries()].map(([email, { guardianName, items }]) =>
+        sendInvoiceEmail({ toEmail: email, guardianName, items })
+      )
+    )
+
+    let emailsSent = 0
+    let emailsFailed = 0
+
+    for (const result of emailResults) {
+      if (result.status === 'fulfilled' && result.value.success) {
+        emailsSent++
+      } else {
+        emailsFailed++
+        const reason =
+          result.status === 'rejected' ? result.reason : (result.value as EmailResult).error
+        console.error('[executeJob] Gagal kirim email:', reason)
+      }
+    }
+
+    const noEmailCount = typedStudents.filter(
+      (s) => resolveGuardianEmail(s.guardian) === null
+    ).length
+
+    // ──────────────────────────────────────────────────────────
+
+    const messageParts = [`${invoices.length} invoice berhasil dibuat`]
+    if (emailsSent > 0) messageParts.push(`${emailsSent} email terkirim`)
+    if (emailsFailed > 0) messageParts.push(`${emailsFailed} email gagal`)
+    if (noEmailCount > 0) messageParts.push(`${noEmailCount} murid tanpa email wali`)
+    const message = messageParts.join(', ')
 
     await supabaseAdmin.from('cron_jobs').update({
       last_run_at: new Date().toISOString(),

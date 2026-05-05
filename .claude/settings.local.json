@@ -10,7 +10,8 @@
       "Bash(Get-ChildItem -Path . -Force)",
       "Bash(Select-Object Name, Mode)",
       "PowerShell(head -30)",
-      "Bash(pnpm add *)"
+      "Bash(pnpm add *)",
+      "Bash(pnpm exec *)"
     ]
   }
 }
