@@ -323,7 +323,7 @@ export default function CronJobsPage() {
                       )}
                     </div>
 
-                    <div className="flex items-center gap-1 flex-shrink-0">
+                    <div className="flex items-center gap-1 shrink-0">
                       <button
                         onClick={() => handleToggleActive(job)}
                         className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
@@ -383,9 +383,9 @@ export default function CronJobsPage() {
                         <>
                           <div className="flex items-center gap-1.5">
                             {job.last_run_status === "success" ? (
-                              <CheckCircle2 className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
+                              <CheckCircle2 className="w-3.5 h-3.5 text-green-500 shrink-0" />
                             ) : (
-                              <XCircle className="w-3.5 h-3.5 text-red-500 flex-shrink-0" />
+                              <XCircle className="w-3.5 h-3.5 text-red-500 shrink-0" />
                             )}
                             <p className="text-sm font-bold text-slate-700 dark:text-slate-200">
                               {job.last_run_count ?? 0} invoice
@@ -403,20 +403,25 @@ export default function CronJobsPage() {
                     </div>
                   </div>
 
-                  <div className="mt-4 flex items-center justify-between">
-                    {runThisMonth && (
-                      <div className="flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400">
-                        <Clock className="w-3.5 h-3.5" />
-                        Sudah dijalankan bulan ini
-                      </div>
-                    )}
-                    {justRan && !isRunning && (
-                      <div className="flex items-center gap-1.5 text-xs text-green-600 dark:text-green-400">
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                        {runResult?.message}
-                      </div>
-                    )}
-                    {!runThisMonth && !justRan && <div />}
+                  <div className="mt-4 flex items-center justify-between gap-3">
+                    <div className="flex flex-col gap-1 min-w-0">
+                      {runThisMonth && (
+                        <div className="flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400">
+                          <Clock className="w-3.5 h-3.5 shrink-0" />
+                          Sudah dijalankan bulan ini
+                        </div>
+                      )}
+                      {justRan && !isRunning ? (
+                        <div className="flex items-center gap-1.5 text-xs text-green-600 dark:text-green-400">
+                          <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                          <span className="truncate">{runResult?.message}</span>
+                        </div>
+                      ) : job.last_run_message ? (
+                        <p className="text-xs text-slate-400 dark:text-slate-500 truncate">
+                          {job.last_run_message}
+                        </p>
+                      ) : null}
+                    </div>
 
                     <button
                       onClick={() => handleRunClick(job)}
@@ -553,7 +558,7 @@ export default function CronJobsPage() {
                 <button
                   type="button"
                   onClick={() => setForm({ ...form, is_active: !form.is_active })}
-                  className="flex-shrink-0"
+                  className="shrink-0"
                 >
                   {form.is_active
                     ? <ToggleRight className="w-8 h-8 text-green-500" />
@@ -592,7 +597,7 @@ export default function CronJobsPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
           <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-sm shadow-2xl border border-slate-100 dark:border-slate-700 p-6">
             <div className="flex items-center gap-3 mb-4">
-              <div className="h-10 w-10 rounded-full bg-red-100 dark:bg-red-950/40 flex items-center justify-center flex-shrink-0">
+              <div className="h-10 w-10 rounded-full bg-red-100 dark:bg-red-950/40 flex items-center justify-center shrink-0">
                 <Trash2 className="w-5 h-5 text-red-600 dark:text-red-400" />
               </div>
               <h3 className="text-lg font-bold text-slate-800 dark:text-white">Hapus Job?</h3>
@@ -627,7 +632,7 @@ export default function CronJobsPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
           <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-sm shadow-2xl border border-slate-100 dark:border-slate-700 p-6">
             <div className="flex items-center gap-3 mb-4">
-              <div className="h-10 w-10 rounded-full bg-amber-100 dark:bg-amber-950/40 flex items-center justify-center flex-shrink-0">
+              <div className="h-10 w-10 rounded-full bg-amber-100 dark:bg-amber-950/40 flex items-center justify-center shrink-0">
                 <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400" />
               </div>
               <h3 className="text-lg font-bold text-slate-800 dark:text-white">
