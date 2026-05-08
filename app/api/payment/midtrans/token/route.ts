@@ -14,6 +14,11 @@ const MIDTRANS_BASE_URL =
     ? 'https://app.midtrans.com/snap/v1/transactions'
     : 'https://app.sandbox.midtrans.com/snap/v1/transactions'
 
+const SNAP_VTWEB_BASE =
+  MIDTRANS_MODE === 'production'
+    ? 'https://app.midtrans.com/snap/v2/vtweb'
+    : 'https://app.sandbox.midtrans.com/snap/v2/vtweb'
+
 export async function POST(request: NextRequest) {
   try {
     const { invoiceId } = await request.json()
@@ -39,7 +44,7 @@ export async function POST(request: NextRequest) {
 
     // 2. Gunakan snap_token yang sudah ada jika masih valid
     if (invoice.snap_token) {
-      return NextResponse.json({ token: invoice.snap_token })
+      return NextResponse.json({ redirectUrl: `${SNAP_VTWEB_BASE}/${invoice.snap_token}` })
     }
 
     // 3. Siapkan data customer dari wali murid (jika ada)
@@ -53,7 +58,12 @@ export async function POST(request: NextRequest) {
     // 4. Buat transaksi Midtrans Snap
     const authHeader = 'Basic ' + Buffer.from(MIDTRANS_SERVER_KEY + ':').toString('base64')
 
+    const baseUrl = new URL(request.url).origin
+
     const midtransPayload = {
+      callbacks: {
+        finish: `${baseUrl}/sedekah`,
+      },
       transaction_details: {
         order_id: `INV-${invoiceId.substring(0, 8)}-${Date.now()}`,
         gross_amount: Number(invoice.amount),
@@ -108,7 +118,7 @@ export async function POST(request: NextRequest) {
       .update({ snap_token: snapToken, external_id: orderId, status: 'PENDING' })
       .eq('id', invoiceId)
 
-    return NextResponse.json({ token: snapToken })
+    return NextResponse.json({ redirectUrl: `${SNAP_VTWEB_BASE}/${snapToken}` })
   } catch (err: any) {
     console.error('Token route error:', err)
     return NextResponse.json({ message: err.message ?? 'Internal server error' }, { status: 500 })

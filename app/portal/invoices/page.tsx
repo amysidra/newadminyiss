@@ -10,13 +10,6 @@ import { createClient } from "@/lib/supabase/client";
 import { usePortal } from "@/lib/context/PortalContext";
 import { toTitleCase } from "@/lib/format";
 
-declare global {
-  interface Window { snap: any }
-}
-
-const MIDTRANS_CLIENT_KEY = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY ?? "";
-const MIDTRANS_MODE = (process.env.NEXT_PUBLIC_MIDTRANS_MODE ?? "sandbox") as "sandbox" | "production";
-
 interface Student { id: string; fullname: string; unit: string; grade: string }
 interface Invoice {
   id: string;
@@ -39,19 +32,6 @@ export default function PortalInvoicesPage() {
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>("unpaid");
   const [searchQuery, setSearchQuery] = useState("");
-
-  useEffect(() => {
-    if (!MIDTRANS_CLIENT_KEY) return;
-    const scriptId = "midtrans-script";
-    if (document.getElementById(scriptId)) return;
-    const script = document.createElement("script");
-    script.id = scriptId;
-    script.src = MIDTRANS_MODE === "production"
-      ? "https://app.midtrans.com/snap/snap.js"
-      : "https://app.sandbox.midtrans.com/snap/snap.js";
-    script.setAttribute("data-client-key", MIDTRANS_CLIENT_KEY);
-    document.body.appendChild(script);
-  }, []);
 
   const fetchInvoices = async () => {
     if (!profile?.guardianId) { setLoading(false); return; }
@@ -107,20 +87,9 @@ export default function PortalInvoicesPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Gagal mendapatkan token");
-
-      if (window.snap) {
-        window.snap.pay(data.token, {
-          onSuccess: () => { setActiveTab("succeed"); setTimeout(fetchInvoices, 1500); },
-          onPending: () => { setActiveTab("pending"); fetchInvoices(); },
-          onError: (r: any) => console.error("Payment Error:", r),
-          onClose: () => {},
-        });
-      } else {
-        throw new Error("Midtrans belum siap, coba refresh halaman.");
-      }
+      window.location.href = data.redirectUrl;
     } catch (err: any) {
       alert("Kesalahan: " + err.message);
-    } finally {
       setLoadingId(null);
     }
   };

@@ -43,8 +43,6 @@ interface Invoice {
 
 type TabType = "all" | "unpaid" | "pending" | "succeed" | "failed";
 
-const MIDTRANS_CLIENT_KEY = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY ?? "";
-const MIDTRANS_MODE = (process.env.NEXT_PUBLIC_MIDTRANS_MODE ?? "sandbox") as "sandbox" | "production";
 
 export default function InvoicesListPage() {
   const supabase = createClient();
@@ -57,20 +55,6 @@ export default function InvoicesListPage() {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [invoiceToMark, setInvoiceToMark] = useState<Invoice | null>(null);
 
-  useEffect(() => {
-    if (!MIDTRANS_CLIENT_KEY) return;
-
-    const scriptId = "midtrans-script";
-    if (document.getElementById(scriptId)) return;
-
-    const script = document.createElement("script");
-    script.id = scriptId;
-    script.src = MIDTRANS_MODE === "production"
-      ? "https://app.midtrans.com/snap/snap.js"
-      : "https://app.sandbox.midtrans.com/snap/snap.js";
-    script.setAttribute("data-client-key", MIDTRANS_CLIENT_KEY);
-    document.body.appendChild(script);
-  }, []);
 
   const fetchInvoices = async () => {
     try {
@@ -126,26 +110,7 @@ export default function InvoicesListPage() {
         throw new Error(data.message || "Gagal mendapatkan token pembayaran");
       }
 
-      if (window.snap) {
-        window.snap.pay(data.token, {
-          onSuccess: () => {
-            setActiveTab("succeed");
-            setTimeout(() => fetchInvoices(), 1500);
-          },
-          onPending: () => {
-            setActiveTab("pending");
-            fetchInvoices();
-          },
-          onError: (result: any) => {
-            console.error("Payment Error:", result);
-          },
-          onClose: () => {
-            console.log("Customer closed the popup without finishing the payment");
-          }
-        });
-      } else {
-        throw new Error("Midtrans script not loaded yet. Please refresh.");
-      }
+      window.location.href = data.redirectUrl;
     } catch (err: any) {
       console.error("Error making online payment:", err);
       alert("Kesalahan: " + err.message);
