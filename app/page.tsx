@@ -181,7 +181,7 @@ function LoginPageInner() {
                   className="forgot-link"
                   tabIndex={-1}
                 >
-                  Forgot password?
+                  Forgot password - trigger?
                 </a>
               </div>
               <div className="input-wrapper">
