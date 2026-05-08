@@ -58,12 +58,7 @@ export async function POST(request: NextRequest) {
     // 4. Buat transaksi Midtrans Snap
     const authHeader = 'Basic ' + Buffer.from(MIDTRANS_SERVER_KEY + ':').toString('base64')
 
-    const baseUrl = new URL(request.url).origin
-
     const midtransPayload = {
-      callbacks: {
-        finish: `${baseUrl}/sedekah`,
-      },
       transaction_details: {
         order_id: `INV-${invoiceId.substring(0, 8)}-${Date.now()}`,
         gross_amount: Number(invoice.amount),
