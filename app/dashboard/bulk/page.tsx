@@ -2,19 +2,30 @@
 
 export const dynamic = "force-dynamic";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Users, Loader2, Calendar } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+
+interface Student {
+    id: string;
+    fullname: string;
+    unit: string;
+    grade: string;
+}
+
+const UNITS = ['TK', 'SD', 'SMP', 'SMA', 'LPI'];
 
 export default function BulkInvoicesPage() {
     const [formData, setFormData] = useState({
         amount: '',
         description: '',
-        unit: '',
         due_date: new Date(new Date().setMonth(new Date().getMonth() + 1)).toISOString().split('T')[0]
     });
 
-    const [studentCount, setStudentCount] = useState<number>(0);
+    const [students, setStudents] = useState<Student[]>([]);
+    const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+    const [activeTab, setActiveTab] = useState<string>('');
+    const [loadingStudents, setLoadingStudents] = useState(true);
     const [isSubmitted, setIsSubmitted] = useState(false);
     const supabase = React.useMemo(() => createClient(), []);
 
@@ -33,33 +44,81 @@ export default function BulkInvoicesPage() {
         setFormData(prev => ({ ...prev, amount: formatAmount(e.target.value) }));
     };
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
     useEffect(() => {
-        const fetchStudentCount = async () => {
-            let query = supabase
+        const fetchStudents = async () => {
+            setLoadingStudents(true);
+            const { data, error } = await supabase
                 .from('students')
-                .select('id', { count: 'exact', head: true })
-                .eq('status', 'Aktif');
+                .select('id, fullname, unit, grade')
+                .eq('status', 'Aktif')
+                .order('unit')
+                .order('fullname');
 
-            if (formData.unit) {
-                query = query.eq('unit', formData.unit);
+            if (!error && data) {
+                setStudents(data);
+                setSelectedIds(new Set(data.map(s => s.id)));
+            } else {
+                setStatus(prev => ({ ...prev, error: 'Gagal memuat daftar murid.' }));
             }
-
-            const { count } = await query;
-            setStudentCount(count || 0);
+            setLoadingStudents(false);
         };
 
-        fetchStudentCount();
-    }, [formData.unit]);
+        fetchStudents();
+    }, []);
+
+    const filteredStudents = useMemo(
+        () => activeTab ? students.filter(s => s.unit === activeTab) : students,
+        [students, activeTab]
+    );
+
+    const selectedCountByUnit = useMemo(() => {
+        const counts: Record<string, number> = {};
+        for (const unit of UNITS) {
+            counts[unit] = students.filter(s => s.unit === unit && selectedIds.has(s.id)).length;
+        }
+        return counts;
+    }, [students, selectedIds]);
+
+    const allFilteredSelected = filteredStudents.length > 0 && filteredStudents.every(s => selectedIds.has(s.id));
+
+    const toggleSelectAll = () => {
+        const ids = new Set(selectedIds);
+        if (allFilteredSelected) {
+            filteredStudents.forEach(s => ids.delete(s.id));
+        } else {
+            filteredStudents.forEach(s => ids.add(s.id));
+        }
+        setSelectedIds(ids);
+    };
+
+    const toggleStudent = (id: string) => {
+        const ids = new Set(selectedIds);
+        if (ids.has(id)) {
+            ids.delete(id);
+        } else {
+            ids.add(id);
+        }
+        setSelectedIds(ids);
+    };
+
+    const selectedUnits = useMemo(() => {
+        return UNITS.filter(u => selectedCountByUnit[u] > 0);
+    }, [selectedCountByUnit]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         if (isSubmitted) return;
+
+        if (selectedIds.size === 0) {
+            setStatus({ loading: false, error: 'Pilih minimal 1 murid untuk dibuatkan tagihan.', success: null });
+            return;
+        }
 
         const cleanAmount = formData.amount.replace(/\./g, '');
 
@@ -72,24 +131,8 @@ export default function BulkInvoicesPage() {
         setIsSubmitted(true);
 
         try {
-            let studentQuery = supabase
-                .from('students')
-                .select('id')
-                .eq('status', 'Aktif');
-
-            if (formData.unit) {
-                studentQuery = studentQuery.eq('unit', formData.unit);
-            }
-
-            const { data: students, error: studentError } = await studentQuery;
-
-            if (studentError) throw studentError;
-            if (!students || students.length === 0) {
-                throw new Error('Tidak ada siswa aktif yang ditemukan untuk kriteria ini.');
-            }
-
-            const invoices = students.map(student => ({
-                student_id: student.id,
+            const invoices = [...selectedIds].map(id => ({
+                student_id: id,
                 amount: Number(cleanAmount),
                 description: formData.description,
                 due_date: formData.due_date,
@@ -101,10 +144,11 @@ export default function BulkInvoicesPage() {
 
             if (insertError) throw insertError;
 
+            const unitLabel = selectedUnits.length > 0 ? selectedUnits.join(', ') : 'semua jenjang';
             setStatus({
                 loading: false,
                 error: null,
-                success: `Berhasil membuat ${students.length} tagihan untuk ${formData.unit ? 'unit ' + formData.unit : 'semua unit'}!`
+                success: `Berhasil membuat ${invoices.length} tagihan untuk ${unitLabel}!`
             });
 
             setFormData(prev => ({ ...prev, amount: '', description: '' }));
@@ -131,7 +175,7 @@ export default function BulkInvoicesPage() {
                     </div>
                     <h1 className="text-3xl font-bold text-slate-800 dark:text-white tracking-tight">Buat Tagihan Massal</h1>
                 </div>
-                <p className="text-slate-500 dark:text-slate-400">Buat tagihan identik untuk SEMUA siswa aktif sekaligus.</p>
+                <p className="text-slate-500 dark:text-slate-400">Pilih murid yang akan dibuatkan tagihan, lalu isi detail tagihan.</p>
             </header>
 
             <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 md:p-8">
@@ -153,33 +197,12 @@ export default function BulkInvoicesPage() {
                     </div>
                 )}
 
-                <div className="mb-8 p-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl">
-                    <h3 className="text-sm font-semibold text-amber-800 dark:text-amber-400 mb-1">Perhatian</h3>
-                    <p className="text-sm text-amber-700 dark:text-amber-500">
-                        Tindakan ini akan membuat tagihan baru untuk <strong>{studentCount} siswa aktif</strong> {formData.unit ? `jenjang ${formData.unit}` : 'di semua jenjang'}.
-                        Harap periksa kembali nominal dan keterangan sebelum melanjutkan.
-                    </p>
-                </div>
-
                 <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <label htmlFor="unit" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                Jenjang (Level)
-                            </label>
-                            <select id="unit" name="unit" value={formData.unit} onChange={handleChange} className={inputClass}>
-                                <option value="">Semua Jenjang</option>
-                                <option value="TK">TK</option>
-                                <option value="SD">SD</option>
-                                <option value="SMP">SMP</option>
-                                <option value="SMA">SMA</option>
-                                <option value="LPI">LPI</option>
-                            </select>
-                        </div>
-
+                    {/* Detail Tagihan */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div className="space-y-2">
                             <label htmlFor="due_date" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                Tenggat Waktu (Due Date)
+                                Tenggat Waktu
                             </label>
                             <div className="relative">
                                 <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 w-5 h-5" />
@@ -231,10 +254,133 @@ export default function BulkInvoicesPage() {
                         </div>
                     </div>
 
-                    <div className="pt-4">
+                    {/* Pilih Murid */}
+                    <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">Pilih Murid</h2>
+                            {!loadingStudents && (
+                                <span className="text-sm text-slate-500 dark:text-slate-400">
+                                    {selectedIds.size} dari {students.length} murid dipilih
+                                </span>
+                            )}
+                        </div>
+
+                        {/* Tab Filter Jenjang */}
+                        <div className="flex flex-wrap gap-2">
+                            <button
+                                type="button"
+                                onClick={() => setActiveTab('')}
+                                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                                    activeTab === ''
+                                        ? 'bg-[#1a7a4a] text-white'
+                                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                                }`}
+                            >
+                                Semua
+                            </button>
+                            {UNITS.map(unit => (
+                                <button
+                                    key={unit}
+                                    type="button"
+                                    onClick={() => setActiveTab(unit)}
+                                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-1.5 ${
+                                        activeTab === unit
+                                            ? 'bg-[#1a7a4a] text-white'
+                                            : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                                    }`}
+                                >
+                                    {unit}
+                                    {selectedCountByUnit[unit] > 0 && (
+                                        <span className={`text-xs rounded-full px-1.5 py-0.5 font-semibold ${
+                                            activeTab === unit
+                                                ? 'bg-white/20 text-white'
+                                                : 'bg-[#1a7a4a]/10 text-[#1a7a4a] dark:text-green-400'
+                                        }`}>
+                                            {selectedCountByUnit[unit]}
+                                        </span>
+                                    )}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Daftar Murid */}
+                        <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
+                            {loadingStudents ? (
+                                <div className="flex items-center justify-center py-10 gap-2 text-slate-400 dark:text-slate-500">
+                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                    <span className="text-sm">Memuat daftar murid...</span>
+                                </div>
+                            ) : filteredStudents.length === 0 ? (
+                                <div className="py-10 text-center text-sm text-slate-400 dark:text-slate-500">
+                                    Tidak ada murid aktif di jenjang {activeTab}.
+                                </div>
+                            ) : (
+                                <>
+                                    {/* Header: Pilih Semua */}
+                                    <div
+                                        className="flex items-center gap-3 px-4 py-3 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                                        onClick={toggleSelectAll}
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            checked={allFilteredSelected}
+                                            onChange={toggleSelectAll}
+                                            onClick={e => e.stopPropagation()}
+                                            className="w-4 h-4 rounded accent-[#1a7a4a] cursor-pointer"
+                                        />
+                                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                            {allFilteredSelected ? 'Hapus Semua' : 'Pilih Semua'}
+                                            {activeTab ? ` (${activeTab})` : ''}
+                                        </span>
+                                        <span className="ml-auto text-xs text-slate-400 dark:text-slate-500">
+                                            {filteredStudents.length} murid
+                                        </span>
+                                    </div>
+
+                                    {/* List murid */}
+                                    <div className="max-h-72 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
+                                        {filteredStudents.map(student => (
+                                            <div
+                                                key={student.id}
+                                                className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/40 cursor-pointer transition-colors"
+                                                onClick={() => toggleStudent(student.id)}
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedIds.has(student.id)}
+                                                    onChange={() => toggleStudent(student.id)}
+                                                    onClick={e => e.stopPropagation()}
+                                                    className="w-4 h-4 rounded accent-[#1a7a4a] cursor-pointer flex-shrink-0"
+                                                />
+                                                <span className="text-sm text-slate-800 dark:text-slate-200 flex-1 truncate">
+                                                    {student.fullname}
+                                                </span>
+                                                <span className="text-xs text-slate-400 dark:text-slate-500 flex-shrink-0">
+                                                    {student.grade && `Kelas ${student.grade} · `}{student.unit}
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </>
+                            )}
+                        </div>
+
+                        {/* Ringkasan seleksi */}
+                        {!loadingStudents && selectedIds.size > 0 && (
+                            <div className="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl">
+                                <p className="text-sm text-amber-700 dark:text-amber-500">
+                                    Akan dibuatkan tagihan untuk <strong>{selectedIds.size} murid</strong>
+                                    {selectedUnits.length > 0 && ` dari jenjang ${selectedUnits.join(', ')}`}.
+                                    Harap periksa kembali nominal dan keterangan sebelum melanjutkan.
+                                </p>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="pt-2">
                         <button
                             type="submit"
-                            disabled={status.loading}
+                            disabled={status.loading || loadingStudents || selectedIds.size === 0}
                             className="w-full bg-[#1a7a4a] hover:bg-[#15603b] text-white font-bold py-3.5 rounded-xl shadow-md hover:shadow-lg active:scale-[0.98] transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed flex justify-center items-center gap-2"
                         >
                             {status.loading ? (
@@ -243,9 +389,9 @@ export default function BulkInvoicesPage() {
                                     Membuat Tagihan Massal...
                                 </>
                             ) : (
-                                formData.unit
-                                    ? `Buat Tagihan untuk ${studentCount} Siswa ${formData.unit}`
-                                    : `Buat Tagihan untuk ${studentCount} Semua Siswa`
+                                selectedIds.size === 0
+                                    ? 'Pilih minimal 1 murid'
+                                    : `Buat ${selectedIds.size} Tagihan`
                             )}
                         </button>
                     </div>
